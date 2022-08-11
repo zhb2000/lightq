@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lightq"
+version = "0.1.0"
+authors = [{ name = "ZHB", email = "zhb2000@whu.edu.cn" }]
+description = "An elegant QQ bot framework based on mirai-api-http."
+readme = "README.md"
+license = { text = "AGPL-3.0" }
+requires-python = ">=3.10"
+keywords = ["qq", "mirai"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Operating System :: OS Independent",
+    "Framework :: AsyncIO",
+    "Topic :: Internet",
+    "Typing :: Typed"
+]
+dependencies = ["websockets~=10.3"]
+
+[project.urls]
+"Source" = "https://github.com/zhb2000/lightq"
+"Bug Tracker" = "https://github.com/zhb2000/lightq/issues"
