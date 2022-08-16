@@ -84,3 +84,22 @@ class CommonsEntitySerializeTest(unittest.TestCase):
         obj = entities.GroupConfig.from_json(j)
         self.assertIsInstance(obj, entities.GroupConfig)
         self.assertDictEqual(j, obj.to_json())
+
+    def test_announcement(self):
+        j = json.loads('''
+        {
+            "group": {
+                "id": 123456789,
+                "name": "group name",
+                "permission": "ADMINISTRATOR"
+            },
+            "content": "群公告内容",
+            "senderId": 987654321,
+            "fid": "公告唯一id",
+            "allConfirmed": false,
+            "confirmedMembersCount": 0,
+            "publicationTime": 1645085843
+        }''')
+        obj = entities.Announcement.from_json(j)
+        self.assertIsInstance(obj, entities.Announcement)
+        self.assertDictEqual(j, obj.to_json())

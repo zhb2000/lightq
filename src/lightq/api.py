@@ -21,7 +21,8 @@ from .entities import (
     Group,
     Member,
     Profile,
-    GroupConfig
+    GroupConfig,
+    Announcement
 )
 
 __all__ = ['MiraiApi']
@@ -374,4 +375,73 @@ class MiraiApi:
             'memberId': member_id,
             'assign': assign
         })
+
+    # endregion
+
+    # region 群公告
+    async def announcement_list(self, group_id: int, offset: int = 0, size: int = 10) -> list[Announcement]:
+        """
+        获取群公告列表
+
+        :param group_id: 群号
+        :param offset: 分页参数
+        :param size: 分页参数，默认10
+        """
+        announcements: list[dict[str, Any]] = (await self.send_command('anno_list', {
+            'id': group_id,
+            'offset': offset,
+            'size': size
+        }))['data']
+        return [Announcement.from_json(announcement) for announcement in announcements]
+
+    async def publish_announcement(
+        self,
+        group_id: int,
+        content: str,
+        *,
+        pinned: bool = False,
+        send_to_new_member: bool = False,
+        show_edit_card: bool = False,
+        show_popup: bool = False,
+        required_confirmation: bool = False,
+        image_url: str | None = None,
+        image_path: str | None = None,
+        image_base64: str | None = None
+    ) -> Announcement:
+        """
+        发布群公告
+
+        :param group_id: 群号
+        :param content: 公告内容
+        :param pinned: 是否置顶
+        :param send_to_new_member: 是否发送给新成员
+        :param show_edit_card: 是否显示群成员修改群名片的引导
+        :param show_popup: 是否自动弹出
+        :param required_confirmation: 是否需要群成员确认
+        :param image_url: 公告图片 url
+        :param image_path: 公告图片本地路径
+        :param image_base64: 公告图片 base64 编码
+        """
+        announcement: dict[str, Any] = (await self.send_command('anno_publish', {
+            'target': group_id,
+            'content': content,
+            'pinned': pinned,
+            'sendToNewMember': send_to_new_member,
+            'showEditCard': show_edit_card,
+            'showPopup': show_popup,
+            'requiredConfirmation': required_confirmation,
+            'imageUrl': image_url,
+            'imagePath': image_path,
+            'imageBase64': image_base64
+        }))['data']
+        return Announcement.from_json(announcement)
+
+    async def delete_announcement(self, group_id: int, fid: str):
+        """
+        删除群公告
+
+        :param group_id: 群号
+        :param fid: 群公告唯一 id
+        """
+        await self.send_command('anno_delete', {'id': group_id, 'fid': fid})
     # endregion

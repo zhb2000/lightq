@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from . import _mixin as mixin
 from ._entity import Entity
 
+__all__ = ['Friend', 'Group', 'Member', 'Client', 'Profile', 'GroupConfig', 'Announcement']
+
 
 @dataclass
 class Friend(mixin.FromJsonWithoutType, mixin.ToJsonWithoutType, Entity):
@@ -87,3 +89,28 @@ class GroupConfig(mixin.FromJsonWithoutType, mixin.ToJsonWithoutType, Entity):
     allow_member_invite: bool
     auto_approve: bool
     anonymous_chat: bool
+
+
+@dataclass
+class Announcement(mixin.FromJsonWithoutType, mixin.ToJsonWithoutType, Entity):
+    """群公告"""
+
+    group: Group
+
+    content: str
+    """群公告内容"""
+
+    sender_id: int
+    """发布者账号"""
+
+    fid: str
+    """公告唯一 id"""
+
+    all_confirmed: bool
+    """是否所有群成员已确认"""
+
+    confirmed_members_count: int
+    """确认群成员人数"""
+
+    publication_time: int
+    """发布时间"""

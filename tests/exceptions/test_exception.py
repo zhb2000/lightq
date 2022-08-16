@@ -10,8 +10,7 @@ class MiraiApiExceptionTest(unittest.TestCase):
         {
             "code": 1,
             "msg": "I am a message."
-        }
-        ''')
+        }''')
         e = exceptions.MiraiApiException.from_response(response)
         self.assertIsInstance(e, exceptions.WrongVerifyKey)
         self.assertEqual(1, e.code)
@@ -22,8 +21,7 @@ class MiraiApiExceptionTest(unittest.TestCase):
         {
             "code": 1,
             "msg": "I am a message."
-        }
-        ''')
+        }''')
         e = exceptions.WrongVerifyKey.from_response(response)
         self.assertIsInstance(e, exceptions.WrongVerifyKey)
         self.assertEqual(1, e.code)
@@ -34,8 +32,7 @@ class MiraiApiExceptionTest(unittest.TestCase):
         {
             "code": 1,
             "msg": "I am a message."
-        }
-        ''')
+        }''')
         self.assertRaises(Exception, lambda: exceptions.BotNotExist.from_response(response))
 
     def test_unsupported_api_exception_from(self):
@@ -43,7 +40,6 @@ class MiraiApiExceptionTest(unittest.TestCase):
         {
             "code": 500,
             "msg": "I am a message."
-        }
-        ''')
+        }''')
         e = exceptions.MiraiApiException.from_response(response)
         self.assertIsInstance(e, exceptions.UnsupportedApiException)

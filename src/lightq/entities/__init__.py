@@ -1,4 +1,4 @@
-from ._commons import Friend, Group, Member, Client, Profile, GroupConfig
+from ._commons import *
 from ._entity import Entity, UnsupportedEntity
 from ._element import *
 from ._event import *
