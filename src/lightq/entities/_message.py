@@ -23,9 +23,14 @@ class Message(Entity, mixin.FromContextData, abc.ABC):
     sender: Friend | Member | Client
     message_chain: MessageChain
 
+    @abc.abstractclassmethod
+    def to_json(self) -> dict[str, Any]:
+        raise NotImplementedError
+
     @classmethod
     def from_json(cls, obj: dict[str, Any]) -> 'Message':
         return message_from_json(obj)
+
 
 
 class AbstractMessage(mixin.FromJson, mixin.ToJson, Message, abc.ABC):

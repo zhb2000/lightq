@@ -2,7 +2,7 @@ import asyncio
 import datetime
 import itertools
 import functools
-from typing import Iterable, overload, Callable, Awaitable, Any, TypeVar, Coroutine
+from typing import Iterable, overload, Callable, Awaitable, Any, TypeVar, Coroutine, cast
 
 from .. import _commons, entities
 from ._router import (
@@ -362,4 +362,4 @@ def bot_topo_sort(
         for item in items:
             if item != default and not must_after_default(item):
                 orders.append((item, default))
-    return topological_sort(items, orders)
+    return cast(list[T], topological_sort(items, orders))

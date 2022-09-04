@@ -1,6 +1,6 @@
 import inspect
 import functools
-from typing import Sequence, Callable, Awaitable, TypeVar, ParamSpec, overload
+from typing import Sequence, Callable, Awaitable, TypeVar, ParamSpec, cast
 
 from ..entities import Message, Event, MessageChain, Plain
 from ..framework import (
@@ -17,15 +17,7 @@ T = TypeVar('T')
 P = ParamSpec('P')
 
 
-@overload
-def one_or_many(obj: Sequence[T]) -> Sequence[T]: pass
-
-
-@overload
-def one_or_many(obj: T) -> Sequence[T]: pass
-
-
-def one_or_many(obj: Sequence[T] | T) -> Sequence[T]:
+def to_sequence(obj: Sequence[T] | T) -> Sequence[T]:
     return obj if isinstance(obj, Sequence) else (obj,)
 
 
@@ -48,17 +40,19 @@ def message_handler(
                                 | Callable[P, Awaitable[str | MessageChain | None]])) -> MessageHandler:
         @functools.wraps(func)
         async def func_wrapper(*args: P.args, **kwargs: P.kwargs) -> MessageChain | None:
-            result = await invoke(func, *args, **kwargs)
-            assert isinstance(result, str | MessageChain | None)
+            result = cast(str | MessageChain | None, await invoke(func, *args, **kwargs))
             return MessageChain([Plain(result)]) if isinstance(result, str) else result
 
         handler = MessageHandler(
             handler=func_wrapper,
             message_types=[message_type, *message_types],
             resolvers=make_resolvers(func),
-            filters=(as_async(f) for f in one_or_many(filters)),
-            before=one_or_many(before),
-            after=one_or_many(after)
+            filters=(
+                cast(Callable[[RecvContext], Awaitable[bool]], as_async(f))
+                for f in to_sequence(filters)
+            ),
+            before=to_sequence(before),
+            after=to_sequence(after)
         )
         functools.update_wrapper(
             handler,
@@ -89,17 +83,19 @@ def event_handler(
                                 | Callable[P, Awaitable[str | MessageChain | None]])) -> EventHandler:
         @functools.wraps(func)
         async def func_wrapper(*args: P.args, **kwargs: P.kwargs) -> MessageChain | None:
-            result = await invoke(func, *args, **kwargs)
-            assert isinstance(result, str | MessageChain | None)
+            result = cast(str | MessageChain | None, await invoke(func, *args, **kwargs))
             return MessageChain([Plain(result)]) if isinstance(result, str) else result
 
         handler = EventHandler(
             handler=func_wrapper,
             event_types=[event_type, *event_types],
             resolvers=make_resolvers(func),
-            filters=(as_async(f) for f in one_or_many(filters)),
-            before=one_or_many(before),
-            after=one_or_many(after)
+            filters=(
+                cast(Callable[[RecvContext], Awaitable[bool]],as_async(f))
+                for f in to_sequence(filters)
+            ),
+            before=to_sequence(before),
+            after=to_sequence(after)
         )
         functools.update_wrapper(
             handler,
@@ -126,17 +122,19 @@ def exception_handler(
                                 | Callable[P, Awaitable[str | MessageChain | None]])) -> ExceptionHandler:
         @functools.wraps(func)
         async def func_wrapper(*args: P.args, **kwargs: P.kwargs) -> MessageChain | None:
-            result = await invoke(func, *args, **kwargs)
-            assert isinstance(result, str | MessageChain | None)
+            result = cast(str | MessageChain | None, await invoke(func, *args, **kwargs))
             return MessageChain([Plain(result)]) if isinstance(result, str) else result
 
         handler = ExceptionHandler(
             handler=func_wrapper,
             exception_types=[exception_type, *exception_types],
             resolvers=make_resolvers_ex(func),
-            filters=(as_async(f) for f in one_or_many(filters)),
-            before=one_or_many(before),
-            after=one_or_many(after)
+            filters=(
+                cast(Callable[[ExceptionContext], Awaitable[bool]], as_async(f))
+                for f in to_sequence(filters)
+            ),
+            before=to_sequence(before),
+            after=to_sequence(after)
         )
         functools.update_wrapper(
             handler,

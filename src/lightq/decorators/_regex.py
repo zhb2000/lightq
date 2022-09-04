@@ -1,7 +1,7 @@
 import inspect
 import re
 import typing
-from typing import Callable, TypeVar
+from typing import Callable, TypeVar, cast
 
 from ..framework import MessageHandler, ExceptionHandler, RecvContext, ExceptionContext
 from ..entities import MessageChain
@@ -14,12 +14,12 @@ def regex_match(
     pattern: str | re.Pattern[str],
     flags: int | re.RegexFlag = 0,
     extractor: Callable[[MessageChain], str] = MessageChain.__str__,
-    matcher: Callable[[re.Pattern[str], str], re.Match | None] = re.match
+    matcher: Callable[[re.Pattern[str], str], re.Match[str] | None] = re.match
 ) -> Callable[[Handler], Handler]:
     pattern = re.compile(pattern, flags)
 
     def actual_decorator(handler: Handler) -> Handler:
-        match: re.Match | None = None
+        match: re.Match[str] | None = None
 
         async def is_match(context: RecvContext | ExceptionContext) -> bool:
             nonlocal match
@@ -35,7 +35,9 @@ def regex_match(
             elif name in pattern.groupindex:
                 # if you use `lambda ctx: match[name]` here, then the captured
                 # `name` of every lambda will be the same object (the last `name` in for loop).
-                handler.resolvers[name] = as_async(lambda ctx, name=name: match[name])
+                handler.resolvers[name] = as_async(
+                    lambda ctx, name=name: cast(re.Match[str], match)[name]
+                )
         return handler
 
     return actual_decorator

@@ -1,6 +1,7 @@
 import unittest
+from typing import cast
 
-from lightq import exception_handler, Bot, RecvContext, ExceptionContext
+from lightq import exception_handler, Bot, RecvContext, ExceptionContext, ExceptionHandler
 from lightq.entities import FriendMessage
 from lightq.framework._router import ExceptionTypeRouter
 
@@ -60,13 +61,13 @@ class MessageRouterTest(unittest.IsolatedAsyncioTestCase):
 
         exception = ValueError()
         context = ExceptionContext(exception, self.recv_context, None)
-        h = await self.router.route(context)
+        h = cast(ExceptionHandler, await self.router.route(context))
         self.assertIs(h, handler)
         await h.handle(context)
 
         exception = MyException()
         context = ExceptionContext(exception, self.recv_context, None)
-        h = await self.router.route(context)
+        h = cast(ExceptionHandler, await self.router.route(context))
         self.assertIs(h, handler)
         await h.handle(context)
 

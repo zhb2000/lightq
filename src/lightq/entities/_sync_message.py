@@ -26,6 +26,10 @@ class SyncMessage(Entity, mixin.FromContextData, abc.ABC):
     subject: Friend | Group | Member
     message_chain: MessageChain
 
+    @abc.abstractclassmethod
+    def to_json(self) -> dict[str, Any]:
+        raise NotImplementedError
+
     @classmethod
     def from_json(cls, obj: dict[str, Any]) -> 'SyncMessage':
         return sync_message_from_json(obj)

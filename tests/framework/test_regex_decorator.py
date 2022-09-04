@@ -1,6 +1,7 @@
 import unittest
 import re
 import typing
+from typing import cast
 
 from lightq import entities, filters, RecvContext, ExceptionContext, Bot
 from lightq.entities import FriendMessage, Friend, MessageChain
@@ -24,7 +25,6 @@ class RegexDecoratorTest(unittest.IsolatedAsyncioTestCase):
                 MessageChain([entities.Plain(text)])
             )
         )
-        pass
 
     async def test_regex_match(self):
         @regex_match(r'(?P<first_name>\w+) (?P<last_name>\w+)')
@@ -102,7 +102,7 @@ class RegexDecoratorTest(unittest.IsolatedAsyncioTestCase):
         context = self.make_context('First Last')
         self.assertFalse(await handler.can_handle(context))
 
-        context.data.message_chain.append(entities.At(233))
+        cast(FriendMessage, context.data).message_chain.append(entities.At(233))
         self.assertTrue(await handler.can_handle(context))
         await handler.handle(context)
 

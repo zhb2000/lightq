@@ -120,7 +120,7 @@ class MessageTypeRouter(TypeRouterMixin[MessageHandler], MessageRouter):
         return await super()._route_by_exact_type(type(context.data), context)
 
 
-class EventTypeRouter(TypeRouterMixin[EventRouter], EventRouter):
+class EventTypeRouter(TypeRouterMixin[EventHandler], EventRouter):
     type_to_handlers: dict[type[Event], list[EventHandler]]
 
     def __init__(

@@ -20,7 +20,7 @@ def resolve(
 ) -> Callable[[ExceptionHandler], ExceptionHandler]: pass
 
 
-def resolve(*resolvers, **named_resolvers):
+def resolve(*resolvers, **named_resolvers) -> Callable:
     def actual_decorator(handler):
         for resolver in resolvers:
             handler.resolvers[resolver.__name__] = as_async(resolver)

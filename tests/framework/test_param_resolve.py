@@ -1,4 +1,5 @@
 import unittest
+from typing import cast
 
 from lightq import message_handler, exception_handler, resolve, RecvContext, ExceptionContext, Bot
 from lightq.entities import FriendMessage, MessageChain, Plain
@@ -32,7 +33,7 @@ class ParamResolveTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_function_based_resolver_named(self):
         def extract_text(ctx: RecvContext) -> str:
-            return next(e.text for e in ctx.data.message_chain if isinstance(e, Plain))
+            return next(e.text for e in cast(FriendMessage, ctx.data).message_chain if isinstance(e, Plain))
 
         @resolve(text=extract_text)
         @message_handler(FriendMessage)
@@ -57,7 +58,7 @@ class ParamResolveTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_function_based_resolver_unnamed(self):
         def text(ctx: RecvContext) -> str:
-            return next(e.text for e in ctx.data.message_chain if isinstance(e, Plain))
+            return next(e.text for e in cast(FriendMessage, ctx.data).message_chain if isinstance(e, Plain))
 
         @resolve(text)
         @message_handler(FriendMessage)
@@ -97,7 +98,7 @@ class ParamResolveTest(unittest.IsolatedAsyncioTestCase):
         }))
 
         def text(ctx: RecvContext) -> str:
-            return next(e.text for e in ctx.data.message_chain if isinstance(e, Plain))
+            return next(e.text for e in cast(FriendMessage, ctx.data).message_chain if isinstance(e, Plain))
 
         @resolve(text, s=text, bot=Bot.from_recv_context)
         @message_handler(FriendMessage)

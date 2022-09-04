@@ -1,6 +1,6 @@
 import abc
 import typing
-from typing import TypeVar, Type, Union
+from typing import TypeVar, Type
 
 if typing.TYPE_CHECKING:
     from .framework import RecvContext, ExceptionContext
@@ -25,9 +25,12 @@ class FromExceptionContext(abc.ABC):
         raise NotImplementedError
 
 
+FromContextSelf = TypeVar('FromContextSelf', bound='FromContext')
+
+
 class FromContext(FromRecvContext, FromExceptionContext, abc.ABC):
     @classmethod
-    def from_context(cls: Type[Self], context: Union['RecvContext', 'ExceptionContext']) -> Self:
+    def from_context(cls: Type[FromContextSelf], context: 'RecvContext | ExceptionContext') -> FromContextSelf:
         from .framework import RecvContext
         if isinstance(context, RecvContext):
             return cls.from_recv_context(context)

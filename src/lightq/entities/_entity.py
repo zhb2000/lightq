@@ -27,5 +27,5 @@ class UnsupportedEntity(Entity):
         return self.data
 
     @classmethod
-    def from_json(cls, obj: dict[str, Any]) -> 'UnsupportedEntity':
+    def from_json(cls: type[Self], obj: dict[str, Any]) -> Self:
         return cls(obj)

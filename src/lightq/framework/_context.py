@@ -1,6 +1,5 @@
 import typing
 import abc
-from typing import Union
 
 from ..entities import Message, Event, SyncMessage, UnsupportedEntity
 from .._from_context import FromExceptionContext, FromContext
@@ -34,7 +33,7 @@ class ExceptionContext(Context, FromExceptionContext):
         self,
         exception: Exception,
         context: RecvContext,
-        handler: Union['MessageHandler', 'EventHandler', None],
+        handler: 'MessageHandler | EventHandler | None',
     ):
         super().__init__(context.bot)
         self.exception = exception

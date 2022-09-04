@@ -2,7 +2,7 @@ import asyncio
 import json
 import urllib.parse
 from collections import deque
-from typing import Any, Callable, Literal, AsyncIterator, TypedDict
+from typing import Any, Callable, Literal, AsyncIterator, TypedDict, cast
 
 import websockets
 
@@ -125,7 +125,7 @@ class MiraiApi:
                 await asyncio.sleep(0)  # let other coroutine receive data
                 continue
             self.__waiting_for_recv = True
-            data: dict[str, Any] = json.loads(await self.__ws.recv())  # from websocket
+            data = cast(dict[str, Any], json.loads(await self.__ws.recv()))  # from websocket
             self.__waiting_for_recv = False
             logger.info(f'websocket recv: {data}')
             if data['syncId'] == '':  # first message after connected

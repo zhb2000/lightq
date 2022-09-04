@@ -1,6 +1,21 @@
 import abc
-import functools
-from typing import Any, TypeVar
+import importlib
+from typing import Any, TypeVar, cast
+
+__all__ = [
+    'MiraiApiException',
+    'UnsupportedApiException',
+    'WrongVerifyKey',
+    'BotNotExist',
+    'InvalidSession',
+    'InactiveSession',
+    'TargetNotExist',
+    'FileNotExist',
+    'NoPermission',
+    'BotInSilence',
+    'MessageTooLong',
+    'IncorrectAccess'
+]
 
 Self = TypeVar('Self')
 
@@ -96,18 +111,18 @@ class IncorrectAccess(MiraiApiException):
     code = 400
 
 
-CODE_TO_EXCEPTION = {
-    1: WrongVerifyKey,
-    2: BotNotExist,
-    3: InvalidSession,
-    4: InactiveSession,
-    5: TargetNotExist,
-    6: FileNotExist,
-    10: NoPermission,
-    20: BotInSilence,
-    30: MessageTooLong,
-    400: IncorrectAccess
-}
+def _make_class_dict() -> dict[int, type[MiraiApiException]]:
+    module = importlib.import_module(__name__)
+    exclude = ('MiraiApiException', 'UnsupportedApiException')
+    class_dict: dict[int, type[MiraiApiException]] = {}
+    for name in __all__:
+        if name not in exclude:
+            cls: type[MiraiApiException] = getattr(module, name)
+            class_dict[cls.code] = cls
+    return class_dict
+
+
+CODE_TO_EXCEPTION = _make_class_dict()
 
 
 def _mirai_api_exception_from_response(cls: type[Self], response: dict[str, Any]) -> Self:
@@ -115,4 +130,4 @@ def _mirai_api_exception_from_response(cls: type[Self], response: dict[str, Any]
     exception_class = CODE_TO_EXCEPTION.get(code, UnsupportedApiException)
     if cls != MiraiApiException:
         assert exception_class == cls
-    return exception_class(response)
+    return cast(Self, exception_class(response))

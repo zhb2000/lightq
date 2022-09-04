@@ -53,6 +53,10 @@ __all__ = [
 
 
 class Event(Entity, mixin.FromContextData, abc.ABC):
+    @abc.abstractclassmethod
+    def to_json(self) -> dict[str, Any]:
+        raise NotImplementedError
+
     @classmethod
     def from_json(cls, obj: dict[str, Any]) -> 'Event':
         return event_from_json(obj)

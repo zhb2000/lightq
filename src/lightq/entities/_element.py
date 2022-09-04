@@ -2,13 +2,15 @@ import abc
 import importlib
 import typing
 from dataclasses import dataclass
-from typing import Any, Iterable, SupportsIndex, overload, TypeVar
+from typing import Any, Iterable, SupportsIndex, overload, TypeVar, cast
 
 from . import _mixin as mixin
 from ._entity import Entity, UnsupportedEntity
 from .._from_context import FromContext
 
 if typing.TYPE_CHECKING:
+    from ._message import Message
+    from ._sync_message import SyncMessage
     from ..framework import RecvContext
 
 __all__ = [
@@ -38,6 +40,10 @@ __all__ = [
 
 
 class MessageElement(Entity, abc.ABC):
+    @abc.abstractclassmethod
+    def to_json(self) -> dict[str, Any]:
+        raise NotImplementedError
+
     @classmethod
     def from_json(cls, obj: dict[str, Any]) -> 'MessageElement':
         return message_element_from_json(obj)
@@ -152,7 +158,7 @@ class MessageChain(list[MessageElement], FromContext, Entity):
 
     @classmethod
     def from_recv_context(cls, context: 'RecvContext') -> 'MessageChain':
-        return context.data.message_chain
+        return cast('Message | SyncMessage', context.data).message_chain
 
 
 class AbstractMessageElement(mixin.FromJson, mixin.ToJson, MessageElement, abc.ABC):

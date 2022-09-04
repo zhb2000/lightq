@@ -2,7 +2,7 @@ import dataclasses
 import types
 import typing
 import abc
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 from ._entity import Entity
 from .._commons import to_camel_case, is_class_annotation
@@ -73,16 +73,16 @@ def deserialize(
 ) -> Entity | list | int | str | bool | None:
     if typing.get_origin(annotation) == list:  # list[T] or List[T]
         value_type = typing.get_args(annotation)[0]  # T
-        return [deserialize(value_type, x) for x in json_element]
+        return [deserialize(value_type, x) for x in cast(list, json_element)]
     elif (isinstance(annotation, types.UnionType)
           or typing.get_origin(annotation) == typing.Union):  # X | Y or Union[X, Y]
         union_types = typing.get_args(annotation)  # (X, Y)
         return deserialize_union(union_types, json_element)
     elif is_class_annotation(annotation) and issubclass(annotation, Entity):
-        return annotation.from_json(json_element)
+        return annotation.from_json(cast(dict, json_element))
     else:
         assert issubclass(annotation, int | str | bool | types.NoneType)
-        return json_element
+        return cast(int | str | bool | None, json_element)
 
 
 def deserialize_union(
