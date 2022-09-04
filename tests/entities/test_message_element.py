@@ -15,7 +15,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         }''')
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.Source)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_quote(self):
         j = json.loads('''
@@ -31,7 +31,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         }''')
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.Quote)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_at(self):
         j = json.loads('''
@@ -42,7 +42,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         }''')
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.At)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_at_all(self):
         j = json.loads('''
@@ -51,7 +51,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         }''')
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.AtAll)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_face(self):
         j = json.loads('''
@@ -62,7 +62,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         }''')
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.Face)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_plain(self):
         j = json.loads('''
@@ -72,7 +72,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         }''')
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.Plain)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_Image(self):
         j = json.loads('''
@@ -85,7 +85,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         }''')
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.Image)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_flash_image(self):
         j = json.loads('''
@@ -98,7 +98,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         }''')
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.FlashImage)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_voice(self):
         j = json.loads('''
@@ -112,7 +112,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         }''')
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.Voice)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_xml(self):
         j = json.loads('''
@@ -122,7 +122,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         }''')
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.Xml)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_json(self):
         j = json.loads('''
@@ -132,7 +132,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         }''')
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.Json)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_app(self):
         j = json.loads('''
@@ -142,7 +142,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         }''')
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.App)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_poke(self):
         j = json.loads('''{
@@ -151,7 +151,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         }''')
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.Poke)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_dice(self):
         j = json.loads('''
@@ -161,7 +161,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         }''')
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.Dice)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_market_face(self):
         j = json.loads('''
@@ -172,7 +172,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         }''')
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.MarketFace)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_music_share(self):
         j = json.loads('''
@@ -188,7 +188,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         }''')
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.MusicShare)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_forward(self):
         j = json.loads('''
@@ -206,7 +206,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         }''')
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.Forward)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_file(self):
         j = json.loads('''
@@ -218,7 +218,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         }''')
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.File)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_mirai_code(self):
         j = json.loads('''
@@ -228,7 +228,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         }''')
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.MiraiCode)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_unsupported_message_element(self):
         j = json.loads('''
@@ -238,7 +238,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         }''')
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.UnsupportedMessageElement)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
 
 if __name__ == '__main__':

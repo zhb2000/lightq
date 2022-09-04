@@ -19,7 +19,7 @@ class MessageSerializeTest(unittest.TestCase):
         }''')
         obj = Message.from_json(j)
         self.assertIsInstance(obj, entities.FriendMessage)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_group_message(self):
         j = json.loads('''
@@ -43,7 +43,7 @@ class MessageSerializeTest(unittest.TestCase):
         }''')
         obj = Message.from_json(j)
         self.assertIsInstance(obj, entities.GroupMessage)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_temp_message(self):
         j = json.loads('''
@@ -67,7 +67,7 @@ class MessageSerializeTest(unittest.TestCase):
         }''')
         obj = Message.from_json(j)
         self.assertIsInstance(obj, entities.TempMessage)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_stranger_message(self):
         j = json.loads('''
@@ -82,7 +82,7 @@ class MessageSerializeTest(unittest.TestCase):
         }''')
         obj = Message.from_json(j)
         self.assertIsInstance(obj, entities.StrangerMessage)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_other_client_message(self):
         j = json.loads('''
@@ -96,7 +96,7 @@ class MessageSerializeTest(unittest.TestCase):
         }''')
         obj = Message.from_json(j)
         self.assertIsInstance(obj, entities.OtherClientMessage)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
 
 if __name__ == '__main__':

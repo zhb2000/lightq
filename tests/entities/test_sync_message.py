@@ -19,7 +19,7 @@ class SyncMessageSerializeTest(unittest.TestCase):
         }''')
         obj = SyncMessage.from_json(j)
         self.assertIsInstance(obj, entities.FriendSyncMessage)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_group_sync_message(self):
         j = json.loads('''
@@ -34,7 +34,7 @@ class SyncMessageSerializeTest(unittest.TestCase):
         }''')
         obj = SyncMessage.from_json(j)
         self.assertIsInstance(obj, entities.GroupSyncMessage)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_temp_sync_message(self):
         j = json.loads('''
@@ -58,7 +58,7 @@ class SyncMessageSerializeTest(unittest.TestCase):
         }''')
         obj = SyncMessage.from_json(j)
         self.assertIsInstance(obj, entities.TempSyncMessage)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
     def test_stranger_sync_message(self):
         j = json.loads('''
@@ -73,7 +73,7 @@ class SyncMessageSerializeTest(unittest.TestCase):
         }''')
         obj = SyncMessage.from_json(j)
         self.assertIsInstance(obj, entities.StrangerSyncMessage)
-        self.assertEqual(obj.to_json(), j)
+        self.assertDictEqual(j, obj.to_json())
 
 
 if __name__ == '__main__':
