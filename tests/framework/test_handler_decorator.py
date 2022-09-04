@@ -13,7 +13,7 @@ class HandlerDecoratorTest(unittest.TestCase):
 
             return handler
 
-        self.assertRaises(TypeError, make_handler)
+        make_handler()
 
     def test_event_handler_event(self):
         def make_handler():
@@ -23,7 +23,7 @@ class HandlerDecoratorTest(unittest.TestCase):
 
             return handler
 
-        self.assertRaises(TypeError, make_handler)
+        make_handler()
 
     def test_exception_handler_exception(self):
         def make_handler():

@@ -117,7 +117,7 @@ class MessageTypeRouter(TypeRouterMixin[MessageHandler], MessageRouter):
         MessageRouter.__init__(self, before, after)
 
     async def route(self, context: RecvContext) -> MessageHandler | None:
-        return await super()._route_by_exact_type(type(context.data), context)
+        return await super()._route_by_mro(type(context.data), context)
 
 
 class EventTypeRouter(TypeRouterMixin[EventHandler], EventRouter):
@@ -132,7 +132,7 @@ class EventTypeRouter(TypeRouterMixin[EventHandler], EventRouter):
         EventRouter.__init__(self, before, after)
 
     async def route(self, context: RecvContext) -> EventHandler | None:
-        return await super()._route_by_exact_type(type(context.data), context)
+        return await super()._route_by_mro(type(context.data), context)
 
 
 class ExceptionTypeRouter(TypeRouterMixin[ExceptionHandler], ExceptionRouter):

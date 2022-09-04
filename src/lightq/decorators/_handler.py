@@ -32,10 +32,6 @@ def message_handler(
 ) -> Callable[[Callable[..., str | MessageChain | None]
                | Callable[..., Awaitable[str | MessageChain | None]]],
               MessageHandler]:
-    for tp in (message_type, *message_types):
-        if tp == Message:
-            raise TypeError("Don't use `Message` in the `message_handler` decorator, use an exact message type.")
-
     def actual_decorator(func: (Callable[P, str | MessageChain | None]
                                 | Callable[P, Awaitable[str | MessageChain | None]])) -> MessageHandler:
         @functools.wraps(func)
@@ -75,10 +71,6 @@ def event_handler(
 ) -> Callable[[Callable[..., str | MessageChain | None]
                | Callable[..., Awaitable[str | MessageChain | None]]],
               EventHandler]:
-    for tp in (event_type, *event_types):
-        if tp == Event:
-            raise TypeError("Don't use `Event` in the `event_handler` decorator, use an exact event type.")
-
     def actual_decorator(func: (Callable[P, str | MessageChain | None]
                                 | Callable[P, Awaitable[str | MessageChain | None]])) -> EventHandler:
         @functools.wraps(func)
