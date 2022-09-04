@@ -97,3 +97,7 @@ class MessageSerializeTest(unittest.TestCase):
         obj = Message.from_json(j)
         self.assertIsInstance(obj, entities.OtherClientMessage)
         self.assertEqual(obj.to_json(), j)
+
+
+if __name__ == '__main__':
+    unittest.main()

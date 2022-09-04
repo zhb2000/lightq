@@ -77,3 +77,7 @@ class MessageRouterTest(unittest.IsolatedAsyncioTestCase):
             "messageChain": []
         }))
         self.assertIsNone(await self.router.route(context))
+
+
+if __name__ == '__main__':
+    unittest.main()

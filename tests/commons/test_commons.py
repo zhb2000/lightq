@@ -35,3 +35,7 @@ class CommonsTest(unittest.TestCase):
         self.assertEqual('from_', commons.to_snake_case('from'))
         self.assertEqual('my_word', commons.to_snake_case('myWord'))
         self.assertEqual('my_word_book', commons.to_snake_case('myWordBook'))
+
+
+if __name__ == '__main__':
+    unittest.main()

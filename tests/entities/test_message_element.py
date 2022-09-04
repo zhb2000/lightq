@@ -239,3 +239,7 @@ class MessageElementSerializeTest(unittest.TestCase):
         obj = MessageElement.from_json(j)
         self.assertIsInstance(obj, entities.UnsupportedMessageElement)
         self.assertEqual(obj.to_json(), j)
+
+
+if __name__ == '__main__':
+    unittest.main()

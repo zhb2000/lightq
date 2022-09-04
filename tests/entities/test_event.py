@@ -801,3 +801,7 @@ class EventSerializeTest(unittest.TestCase):
         self.assertIsInstance(obj, entities.CommandExecutedEvent)
         self.assertEqual(obj.to_json(), j)
     # endregion
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -73,3 +73,7 @@ class MessageRouterTest(unittest.IsolatedAsyncioTestCase):
         exception = KeyError()
         context = ExceptionContext(exception, self.recv_context, None)
         self.assertIsNone(await self.router.route(context))
+
+
+if __name__ == '__main__':
+    unittest.main()

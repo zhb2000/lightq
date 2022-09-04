@@ -45,3 +45,7 @@ class ScanAllTest(unittest.TestCase):
             },
             set(scan_handlers(__name__))
         )
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -167,3 +167,7 @@ class RegexDecoratorTest(unittest.IsolatedAsyncioTestCase):
 
         context = self.make_context('First Last ')
         self.assertFalse(await handler.can_handle(context))
+
+
+if __name__ == '__main__':
+    unittest.main()

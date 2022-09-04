@@ -139,3 +139,7 @@ class ParamResolveTest(unittest.IsolatedAsyncioTestCase):
             self.assertIsInstance(exception, ValueError)
 
         await handler.handle(context)
+
+
+if __name__ == '__main__':
+    unittest.main()

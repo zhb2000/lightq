@@ -103,3 +103,7 @@ class CommonsEntitySerializeTest(unittest.TestCase):
         obj = entities.Announcement.from_json(j)
         self.assertIsInstance(obj, entities.Announcement)
         self.assertDictEqual(j, obj.to_json())
+
+
+if __name__ == '__main__':
+    unittest.main()

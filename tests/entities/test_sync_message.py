@@ -74,3 +74,7 @@ class SyncMessageSerializeTest(unittest.TestCase):
         obj = SyncMessage.from_json(j)
         self.assertIsInstance(obj, entities.StrangerSyncMessage)
         self.assertEqual(obj.to_json(), j)
+
+
+if __name__ == '__main__':
+    unittest.main()

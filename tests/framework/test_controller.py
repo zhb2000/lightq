@@ -90,3 +90,7 @@ class ControllerTest(unittest.TestCase):
             _ = list(Ctrl().handlers)
 
         self.assertRaises(Exception, action)
+
+
+if __name__ == '__main__':
+    unittest.main()

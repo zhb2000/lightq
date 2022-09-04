@@ -43,3 +43,7 @@ class MiraiApiExceptionTest(unittest.TestCase):
         }''')
         e = exceptions.MiraiApiException.from_response(response)
         self.assertIsInstance(e, exceptions.UnsupportedApiException)
+
+
+if __name__ == '__main__':
+    unittest.main()

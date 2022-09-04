@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lightq"
-version = "0.1.0"
+version = "0.1.1.dev0"
 authors = [{ name = "ZHB", email = "zhb2000@whu.edu.cn" }]
 description = "An elegant QQ bot framework based on mirai-api-http."
 readme = "README.md"

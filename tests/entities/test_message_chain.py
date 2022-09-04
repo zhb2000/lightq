@@ -155,3 +155,7 @@ class MessageChainTest(unittest.TestCase):
         self.assertEqual(chain1, chain2)
         self.assertIsNot(chain2[0], chain1[0])
         self.assertIsNot(chain2[1], chain1[1])
+
+
+if __name__ == '__main__':
+    unittest.main()

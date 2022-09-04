@@ -34,3 +34,7 @@ class HandlerDecoratorTest(unittest.TestCase):
             return handler
 
         make_handler()
+
+
+if __name__ == '__main__':
+    unittest.main()
