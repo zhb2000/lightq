@@ -70,6 +70,11 @@ class ControllerTest(unittest.TestCase):
         self.assertIs(self.controller.public_event_handler, self.controller.public_event_handler)
         self.assertIs(self.controller.public_exception_handler, self.controller.public_exception_handler)
 
+    def test_different_instance_property(self):
+        a = MyController()
+        b = MyController()
+        self.assertIsNot(a.public_message_handler, b.public_message_handler)
+
     def test_controller_handlers(self):
         self.assertSetEqual(
             {
@@ -79,17 +84,6 @@ class ControllerTest(unittest.TestCase):
             },
             set(self.controller.handlers)
         )
-
-    def test_handler_property_runtime_check(self):
-        def action():
-            class Ctrl(Controller):
-                @handler_property
-                def wrong_type_property(self):
-                    return 0
-
-            _ = list(Ctrl().handlers)
-
-        self.assertRaises(Exception, action)
 
 
 if __name__ == '__main__':

@@ -11,30 +11,33 @@ class handler_property:
         self.func = func
         self.attrname: str | None = None
         self.__doc__ = func.__doc__
-        self.cache: Handler | None = None
 
-    def __set_name__(self, owner, name: str):
+    def __set_name__(self, owner: type, name: str):
         if self.attrname is None:
             self.attrname = name
         elif name != self.attrname:
             raise TypeError(
-                "Cannot assign the same handler_property to two different names "
-                f"({self.attrname!r} and {name!r})."
+                'Cannot assign the same handler_property to two different names '
+                f'({self.attrname!r} and {name!r}).'
             )
 
-    def __get__(self, instance, owner):
+    def __get__(self, instance, owner: type | None = None):
         if instance is None:
             return self
         if self.attrname is None:
             raise TypeError(
-                "Cannot use handler_property instance without calling __set_name__ on it.")
-        if self.cache is None:
+                'Cannot use handler_property instance without calling __set_name__ on it.'
+            )
+        if not hasattr(instance, '__dict__'):
+            raise TypeError(
+                f"No '__dict__' attribute on {type(instance).__name__!r} "
+                f'instance to cache {self.attrname!r} property.'
+            )  # not all objects have __dict__ (e.g. class defines slots)
+        handler = instance.__dict__.get(self.attrname)
+        if handler is None:
             handler = self.func(instance)
-            assert isinstance(handler, MessageHandler | EventHandler | ExceptionHandler), \
-                'Expect a method which returns MessageHandler, EventHandler or ExceptionHandler ' \
-                f'for handler_property, but the method returns {type(handler).__name__}.'
-            self.cache = handler
-        return self.cache
+            instance.__dict__[self.attrname] = handler
+        return handler
 
 
 class Controller(abc.ABC):
