@@ -35,6 +35,39 @@ class CommonsTest(unittest.TestCase):
         self.assertEqual('from_', commons.to_snake_case('from'))
         self.assertEqual('my_word', commons.to_snake_case('myWord'))
         self.assertEqual('my_word_book', commons.to_snake_case('myWordBook'))
+    
+    def test_class_attributes(self):
+        class Base:
+            common_member = 'base'
+            base_member = 1
+
+            def base_method(self):
+                pass
+
+        class Derived(Base):
+            common_member = 'derived'
+            derived_member = 2
+
+            def __init__(self):
+                self.instance_member = 'a'
+
+            def __str__(self) -> str:
+                return super().__str__()
+
+            def derived_method(self):
+                pass
+
+        class_attrs = commons.get_class_attributes(Derived)
+        self.assertIn('derived_member', class_attrs)
+        self.assertEqual(2, class_attrs['derived_member'])
+        self.assertIn('base_member', class_attrs)
+        self.assertEqual(1, class_attrs['base_member'])
+        self.assertIn('common_member', class_attrs)
+        self.assertEqual('derived', class_attrs['common_member'])
+        self.assertIn('derived_method', class_attrs)
+        self.assertIn('base_method', class_attrs)
+        self.assertIn('__str__', class_attrs)
+        self.assertNotIn('instance_member', class_attrs)
 
 
 if __name__ == '__main__':

@@ -300,7 +300,7 @@ def make_default_exception_handler() -> ExceptionHandler:
 
     return ExceptionHandler(
         handler,
-        exception_types=[MiraiApiException],
+        types=[MiraiApiException],
         resolvers={'context': _commons.as_async(ExceptionContext.from_exception_context)}
     )
 

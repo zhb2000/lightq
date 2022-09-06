@@ -76,14 +76,11 @@ class ControllerTest(unittest.TestCase):
         self.assertIsNot(a.public_message_handler, b.public_message_handler)
 
     def test_controller_handlers(self):
-        self.assertSetEqual(
-            {
-                self.controller.public_message_handler,
-                self.controller.public_event_handler,
-                self.controller.public_exception_handler
-            },
-            set(self.controller.handlers)
-        )
+        self.assertCountEqual([
+            self.controller.public_message_handler,
+            self.controller.public_event_handler,
+            self.controller.public_exception_handler
+        ], self.controller.handlers)
 
 
 if __name__ == '__main__':

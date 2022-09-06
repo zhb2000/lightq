@@ -25,14 +25,12 @@ class handler_property:
         if instance is None:
             return self
         if self.attrname is None:
-            raise TypeError(
-                'Cannot use handler_property instance without calling __set_name__ on it.'
-            )
+            raise TypeError('Cannot use handler_property instance without '
+                            'calling __set_name__ on it.')
         if not hasattr(instance, '__dict__'):
-            raise TypeError(
-                f"No '__dict__' attribute on {type(instance).__name__!r} "
-                f'instance to cache {self.attrname!r} property.'
-            )  # not all objects have __dict__ (e.g. class defines slots)
+            # not all objects have __dict__ (e.g. class defines slots)
+            raise TypeError(f"No '__dict__' attribute on {type(instance).__name__!r} "
+                            f'instance to cache {self.attrname!r} property.')
         handler = instance.__dict__.get(self.attrname)
         if handler is None:
             handler = self.func(instance)

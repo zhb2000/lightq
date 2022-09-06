@@ -3,7 +3,7 @@ import datetime
 import asyncio
 import typing
 import functools
-from collections import deque
+from collections import deque, ChainMap
 from typing import Callable, overload, Awaitable, TypeVar, ParamSpec, Any, Coroutine
 
 T = TypeVar('T')
@@ -156,3 +156,7 @@ async def do_everyday(time: datetime.time, action: Callable[[], Awaitable] | Cal
         await sleep_until(until)
         await invoke(action)
         until = until + datetime.timedelta(days=1)
+
+
+def get_class_attributes(cls: type) -> ChainMap[str, Any]:
+    return ChainMap(*(vars(c) for c in inspect.getmro(cls)))
