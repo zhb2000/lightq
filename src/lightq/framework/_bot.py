@@ -290,7 +290,7 @@ class Bot(FromContext):
 
 
 def make_default_exception_handler() -> ExceptionHandler:
-    async def handler(context: ExceptionContext):
+    def handler(context: ExceptionContext):
         if context.handler is not None:
             logger.error('swallow an exception from an handler, '
                          f'exception: {repr(context.exception)}, handler: {repr(context.handler)}')
@@ -301,7 +301,7 @@ def make_default_exception_handler() -> ExceptionHandler:
     return ExceptionHandler(
         handler,
         types=[MiraiApiException],
-        resolvers={'context': _commons.as_async(ExceptionContext.from_exception_context)}
+        resolvers={'context': ExceptionContext.from_exception_context}
     )
 
 

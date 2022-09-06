@@ -69,6 +69,34 @@ class CommonsTest(unittest.TestCase):
         self.assertIn('__str__', class_attrs)
         self.assertNotIn('instance_member', class_attrs)
 
+    def test_id_token(self):
+        token = commons.IdToken('token')
+        self.assertNotEqual(token, '')
+        self.assertNotEqual('', token)
+        self.assertEqual(token, token)
+
+    def test_id_token_in_dict(self):
+        class Cls:
+            def __init__(self):
+                self.a = 'a'
+
+        obj = Cls()
+        token_b = commons.IdToken('b')
+        obj.__dict__[token_b] = 'b'
+        token_c = commons.IdToken('c')
+        obj.__dict__[token_c] = 'c'
+        obj.__dict__[''] = ''
+        self.assertDictEqual({
+            'a': 'a',
+            token_b: 'b',
+            token_c: 'c',
+            '': ''
+        }, obj.__dict__)
+        self.assertEqual('a', obj.a)  # normal getattr is ok
+        obj.a = 'aa'  # normal setattr is ok
+        self.assertEqual('aa', obj.a)
+
+
 
 if __name__ == '__main__':
     unittest.main()

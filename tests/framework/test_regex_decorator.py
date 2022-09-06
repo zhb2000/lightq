@@ -3,7 +3,7 @@ import re
 import typing
 from typing import cast
 
-from lightq import entities, filters, RecvContext, ExceptionContext, Bot
+from lightq import entities, filters, RecvContext, ExceptionContext, Bot, Controller
 from lightq.entities import FriendMessage, Friend, MessageChain
 from lightq.decorators import (
     regex_match,
@@ -167,6 +167,20 @@ class RegexDecoratorTest(unittest.IsolatedAsyncioTestCase):
 
         context = self.make_context('First Last ')
         self.assertFalse(await handler.can_handle(context))
+
+    async def test_handler_method_different_instance(self):
+        class MyController(Controller):
+            @regex_fullmatch('(?P<text>abc|123)')
+            @message_handler(FriendMessage)
+            def handler_method(self, text: str) -> str:
+                return text
+        
+        obj1 = MyController()
+        obj2 = MyController()
+        self.assertTrue(await obj1.handler_method.can_handle(self.make_context('abc')))
+        self.assertTrue(await obj2.handler_method.can_handle(self.make_context('123')))
+        self.assertEqual('abc', str(await obj1.handler_method.handle(self.make_context('abc'))))
+        self.assertEqual('123', str(await obj1.handler_method.handle(self.make_context('123'))))
 
 
 if __name__ == '__main__':

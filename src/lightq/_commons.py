@@ -160,3 +160,24 @@ async def do_everyday(time: datetime.time, action: Callable[[], Awaitable] | Cal
 
 def get_class_attributes(cls: type) -> ChainMap[str, Any]:
     return ChainMap(*(vars(c) for c in inspect.getmro(cls)))
+
+
+class IdToken(str):
+    def __init__(self, description: str = ''):
+        super().__init__()
+        self.description = description
+
+    def __hash__(self) -> int:
+        return id(self)
+
+    def __eq__(self, other: object) -> bool:
+        return self is other
+
+    def __ne__(self, other: object) -> bool:
+        return self is not other
+
+    def __repr__(self) -> str:
+        return f'<IdToken({self.description!r}) at {hex(id(self))}>'
+
+    def __str__(self) -> str:
+        return repr(self)
