@@ -229,31 +229,37 @@ Bot：请回复“是”或“否”
 群友 2：否
 ```
 
-若要实现连续对话功能，就必须保存每个用户的状态。可以将状态保存到全局变量中。如果你不喜欢全局变量这种代码风格，也可以将状态封装到 controller 类中统一管理。
+若要实现连续对话功能，就必须保存每个用户的状态。可以将状态保存到全局变量中。如果你不喜欢全局变量这种代码风格，也可以将状态封装到 controller 类中统一管理。Controller 类的编写方法如下：
 
 ```python
-from lightq import Controller, handler_property
-
-class MyController(Controller):  # 继承 lightq.Controller 类
+class MyController(lightq.Controller):  # 继承 lightq.Controller 类
     def __init__(self):
         self.status = ...  # 将状态作为成员变量封装到 controller 中
 
-    @handler_property  # 将该方法标记为处理器属性
-    def my_handler(self):
-        @message_handler(FriendMessage)
-        def handler():
-            self.status  # 在 handler 内部可以通过 self 引用保存的状态
-            ...
+    # 过滤器方法
+    def condition(self, context: RecvContext) -> bool: ...
 
-        return handler  # 在属性方法内创建 handler 对象并将其返回
+    # 解析器方法
+    def resolver(self, context: RecvContext): ...
 
-# ...
+    # 用 message_handler 装饰器将 my_handler 方法转换为消息处理器
+    # - 使用 condition 方法作为过滤条件
+    # - 使用 resolver 方法作为参数解析器
+    @resolve(data=resolver)
+    @message_handler(Message, filters=condition)
+    def my_handler(self, data):
+        self.status  # 在方法内部可以通过 self 引用保存的状态
+        ...
+
 controller = MyController()
-bot.add_all(controller.handlers)  # 获取所有 public 的 handler
+# 通过 handlers 方法获取所有 public 的 handler
+bot.add_all(controller.handlers)
 # ...
 ```
 
 [examples/assistant.py](./examples/assistant.py) 提供了一个完整的 controller 示例，实现了一个支持 `/weather` 和 `/mute_all` 命令的机器人。
+
+此外，你还可以用 `handler_property` 装饰器将属性方法转换为处理器，示例代码见 [examples/assistant_property_style.py](./examples/assistant_property_style.py).
 
 ### 其他功能
 #### 定时任务、后台任务
@@ -281,4 +287,3 @@ LightQ 默认的路由会根据消息/事件/异常的类型将数据送给指�
 - 支持文件操作
 - 补齐剩余的 API 功能
 - 中间件/钩子函数？
-- 依赖注入？

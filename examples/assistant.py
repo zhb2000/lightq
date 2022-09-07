@@ -14,7 +14,7 @@ Bot：请回复“是”或“否”
 
 import asyncio
 from datetime import datetime, timedelta
-from lightq import resolvers, resolve, message_handler, Bot, Controller, handler_property
+from lightq import resolvers, resolve, message_handler, Bot, Controller
 from lightq.decorators import regex_fullmatch
 from lightq.entities import GroupMessage, MessageChain
 
@@ -27,57 +27,47 @@ class Status:
 
 class AssistantController(Controller):
     def __init__(self):
+        # (group_id, sender_id) => status
         self.status: dict[tuple[int, int], Status] = {}
-        self.lowest_priority_handler.after.extend(
-            h for h in self.handlers if h is not self.lowest_priority_handler
-        )  # 设置优先级
 
-    @handler_property
-    def weather_command(self):
-        @regex_fullmatch('/weather')
-        @resolve(resolvers.group_id, resolvers.sender_id)
-        @message_handler(GroupMessage)
-        def handler(group_id: int, sender_id: int) -> str:
-            self.status[(group_id, sender_id)] = Status('/weather', datetime.now())
-            return '您想查询哪个城市的天气？'
+    @regex_fullmatch('/weather')
+    @resolve(resolvers.group_id, resolvers.sender_id)
+    @message_handler(GroupMessage)
+    def weather_command(self, group_id: int, sender_id: int) -> str:
+        self.status[(group_id, sender_id)] = Status('/weather', datetime.now())
+        return '您想查询哪个城市的天气？'
 
-        return handler
+    @regex_fullmatch('/mute_all')
+    @resolve(resolvers.group_id, resolvers.sender_id)
+    @message_handler(GroupMessage)
+    def mute_all_command(self, group_id: int, sender_id: int) -> str:
+        self.status[(group_id, sender_id)] = Status('/mute_all', datetime.now())
+        return '您确定要开启全员禁言吗？请回复“是”或“否”'
 
-    @handler_property
-    def mute_all_command(self):
-        @regex_fullmatch('/mute_all')
-        @resolve(resolvers.group_id, resolvers.sender_id)
-        @message_handler(GroupMessage)
-        def handler(group_id: int, sender_id: int) -> str:
-            self.status[(group_id, sender_id)] = Status('/mute_all', datetime.now())
-            return '您确定要开启全员禁言吗？请回复“是”或“否”'
-
-        return handler
-
-    @handler_property
-    def lowest_priority_handler(self):
-        """根据每个用户的状态做出不同的反应"""
-
-        @resolve(resolvers.group_id, resolvers.sender_id)
-        @message_handler(GroupMessage)
-        async def handler(group_id: int, sender_id: int, chain: MessageChain, bot: Bot) -> str | None:
-            status = self.status.pop((group_id, sender_id), None)
-            if status is None or datetime.now() - status.time > timedelta(seconds=30):
-                # 连续对话时，用户需要在 30 秒内做出反应，超过 30 秒的回复会被 bot 忽略
+    @resolve(resolvers.group_id, resolvers.sender_id)
+    @message_handler(GroupMessage, after=[weather_command, mute_all_command])
+    async def lowest_priority_handler(
+        self,
+        group_id: int,
+        sender_id: int,
+        chain: MessageChain,
+        bot: Bot
+    ) -> str | None:
+        status = self.status.pop((group_id, sender_id), None)
+        if status is None or datetime.now() - status.time > timedelta(seconds=30):
+            # 连续对话时，用户需要在 30 秒内做出反应，超过 30 秒的回复会被 bot 忽略
+            return None
+        if status.command == '/weather':
+            return await query_weather(str(chain))
+        else:  # /mute_all
+            if str(chain) == '是':
+                await bot.api.mute_all(group_id)
                 return None
-            if status.command == '/weather':
-                return await query_weather(str(chain))
-            else:  # /mute_all
-                if str(chain) == '是':
-                    await bot.api.mute_all(group_id)
-                    return None
-                elif str(chain) == '否':
-                    return None
-                else:
-                    self.status[(group_id, sender_id)] = Status('/mute_all', datetime.now())
-                    return '请回复“是”或“否”'
-
-        return handler
+            elif str(chain) == '否':
+                return None
+            else:
+                self.status[(group_id, sender_id)] = Status('/mute_all', datetime.now())
+                return '请回复“是”或“否”'
 
 
 async def query_weather(city: str) -> str:
