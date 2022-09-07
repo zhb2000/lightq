@@ -1,5 +1,5 @@
 import abc
-from typing import Callable, Iterable, Any, TypeVar
+from typing import Callable, Iterable, Any, TypeVar, Generic, cast
 
 from ._handler import MessageHandler, EventHandler, ExceptionHandler
 from .._commons import get_class_attributes
@@ -7,7 +7,7 @@ from .._commons import get_class_attributes
 Handler = TypeVar('Handler', MessageHandler, EventHandler, ExceptionHandler)
 
 
-class handler_property:
+class handler_property(Generic[Handler]):
     def __init__(self, func: Callable[[Any], Handler]):
         self.func = func
         self.attrname: str | None = None
@@ -22,9 +22,12 @@ class handler_property:
                 f'({self.attrname!r} and {name!r}).'
             )
 
-    def __get__(self, instance, owner: type | None = None):
+    def __get__(self, instance, owner: type | None = None) -> Handler:
+        # Return self if instance is None (when calling Cls.property), otherwise return
+        # a handler (when calling obj.property).
+        # The return type is annotated as `Handler` to pass VSCode's type checking.
         if instance is None:
-            return self
+            return cast(Any, self)  # bypass type checking
         if self.attrname is None:
             raise TypeError('Cannot use handler_property instance without '
                             'calling __set_name__ on it.')
@@ -32,7 +35,7 @@ class handler_property:
             # not all objects have __dict__ (e.g. class defines slots)
             raise TypeError(f"No '__dict__' attribute on {type(instance).__name__!r} "
                             f'instance to cache {self.attrname!r} property.')
-        handler = instance.__dict__.get(self.attrname)
+        handler: Handler | None = instance.__dict__.get(self.attrname)
         if handler is None:
             handler = self.func(instance)
             instance.__dict__[self.attrname] = handler
