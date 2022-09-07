@@ -253,7 +253,7 @@ class MyController(lightq.Controller):  # 继承 lightq.Controller 类
 
 controller = MyController()
 # 通过 handlers 方法获取所有 public 的 handler
-bot.add_all(controller.handlers)
+bot.add_all(controller.handlers())
 # ...
 ```
 

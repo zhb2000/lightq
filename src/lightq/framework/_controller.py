@@ -43,7 +43,6 @@ class handler_property(Generic[Handler]):
 
 
 class Controller(abc.ABC):
-    @property
     def handlers(self) -> Iterable[MessageHandler | EventHandler | ExceptionHandler]:
         for name, value in get_class_attributes(type(self)).items():
             if not name.startswith('_') and isinstance(
@@ -52,20 +51,17 @@ class Controller(abc.ABC):
             ):
                 yield getattr(self, name)
 
-    @property
     def message_handlers(self) -> Iterable[MessageHandler]:
-        for handler in self.handlers:
+        for handler in self.handlers():
             if isinstance(handler, MessageHandler):
                 yield handler
 
-    @property
     def event_handlers(self) -> Iterable[EventHandler]:
-        for handler in self.handlers:
+        for handler in self.handlers():
             if isinstance(handler, EventHandler):
                 yield handler
 
-    @property
     def exception_handlers(self) -> Iterable[ExceptionHandler]:
-        for handler in self.handlers:
+        for handler in self.handlers():
             if isinstance(handler, ExceptionHandler):
                 yield handler

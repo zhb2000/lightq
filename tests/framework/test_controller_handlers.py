@@ -41,10 +41,10 @@ class ControllerHandlerTest(unittest.TestCase):
         message_handlers = [obj.message_handler_method, obj.message_handler_property]
         event_handlers = [obj.event_handler_method, obj.event_handler_property]
         exception_handlers = [obj.exception_handler_method, obj.exception_handler_property]
-        self.assertCountEqual(message_handlers, obj.message_handlers)
-        self.assertCountEqual(event_handlers, obj.event_handlers)
-        self.assertCountEqual(exception_handlers, obj.exception_handlers)
-        self.assertCountEqual([*message_handlers, *event_handlers, *exception_handlers], obj.handlers)
+        self.assertCountEqual(message_handlers, obj.message_handlers())
+        self.assertCountEqual(event_handlers, obj.event_handlers())
+        self.assertCountEqual(exception_handlers, obj.exception_handlers())
+        self.assertCountEqual([*message_handlers, *event_handlers, *exception_handlers], obj.handlers())
 
     def test_class_inherit(self):
         class Base(Controller):
@@ -75,7 +75,7 @@ class ControllerHandlerTest(unittest.TestCase):
             obj.base_property,
             obj.derived_method,
             obj.derived_property
-        ], obj.handlers)
+        ], obj.handlers())
 
     def test_controller_handlers_getattr(self):
         outer_self = self
@@ -135,7 +135,7 @@ class ControllerHandlerTest(unittest.TestCase):
         self.assertCountEqual([
             obj.public_method,
             obj.public_property
-        ], obj.handlers)
+        ], obj.handlers())
 
 
 if __name__ == '__main__':

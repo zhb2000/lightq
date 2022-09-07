@@ -78,7 +78,7 @@ async def query_weather(city: str) -> str:
 async def main():
     bot = Bot(123456789, 'verify-key')  # 请替换为相应的 QQ 号和 verify key
     controller = AssistantController()
-    bot.add_all(controller.handlers)
+    bot.add_all(controller.handlers())
     await bot.run()
 
 
