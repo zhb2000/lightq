@@ -73,44 +73,44 @@ class HandlerMethodTest(unittest.IsolatedAsyncioTestCase):
         self.assertListEqual([obj.handler_method2, handler_function], obj.handler_method1.before)
         self.assertListEqual([obj.handler_method1, handler_function], obj.handler_method2.after)
 
-    def test_inherited_method(self):
-        class BaseController(Controller):
+    def test_inherited_handler_method(self):
+        class Base(Controller):
             @message_handler(FriendMessage)
             def base_handler_method(self):
                 pass
 
-        class DerivedController(BaseController):
-            @message_handler(FriendMessage, after=BaseController.base_handler_method)
+        class Derived(Base):
+            @message_handler(FriendMessage, after=Base.base_handler_method)
             def derived_handler_method(self):
                 pass
 
-        obj = DerivedController()
-        self.assertIsNot(obj.base_handler_method, BaseController.base_handler_method)
+        obj = Derived()
+        self.assertIsNot(obj.base_handler_method, Base.base_handler_method)
         self.assertIs(obj.base_handler_method, obj.base_handler_method)
         self.assertListEqual([obj.base_handler_method], obj.derived_handler_method.after)
-        obj2 = DerivedController()
+        obj2 = Derived()
         self.assertIsNot(obj.base_handler_method, obj2.base_handler_method)
 
     async def test_filter_resolver_method(self):
         outer_self = self
 
         class MyController(Controller):
-            def __init__(self, status: int):
+            def __init__(self, status: str):
                 self.status = status
 
             def filter_method(self, context: RecvContext) -> bool:
-                return self.status == 1
+                return self.status == 'ok'
 
-            def resolver_method(self, context: RecvContext) -> int:
-                return self.status + 100
+            def resolver_method(self, context: RecvContext) -> str:
+                return self.status
 
             @resolve(resolve_result=resolver_method)
             @message_handler(FriendMessage, filters=filter_method)
-            def handler_method(self, resolve_result: int) -> str:
-                outer_self.assertEqual(self.status + 100, resolve_result)
+            def handler_method(self, resolve_result: str) -> str:
+                outer_self.assertEqual(self.status, resolve_result)
                 return 'response'
 
-        obj = MyController(1)
+        obj = MyController('not ok')
         context = RecvContext(Bot(0, ''), FriendMessage.from_json({
             "type": "FriendMessage",
             "sender": {
@@ -120,13 +120,54 @@ class HandlerMethodTest(unittest.IsolatedAsyncioTestCase):
             },
             "messageChain": []
         }))
-        self.assertTrue(await obj.handler_method.can_handle(context))
-        obj.status = -1
         self.assertFalse(await obj.handler_method.can_handle(context))
-        obj.status = 1
+        obj.status = 'ok'
+        self.assertTrue(await obj.handler_method.can_handle(context))
         response = await obj.handler_method.handle(context)
         self.assertEqual('response', str(response))
-        obj2 = MyController(1)
+        obj2 = MyController('obj 2')
+        self.assertNotEqual(obj.handler_method.filters, obj2.handler_method.filters)
+        self.assertNotEqual(obj.handler_method.resolvers, obj2.handler_method.resolvers)
+
+    async def test_inherited_filter_resolver_method(self):
+        outer_self = self
+
+        class Base(Controller):
+            def __init__(self, status: str) -> None:
+                self.status = status
+            
+            def filter_method(self, context: RecvContext) -> bool:
+                return self.status == 'ok'
+
+            def resolver_method(self, context: RecvContext) -> str:
+                return self.status
+
+        class Derived(Base):
+            def __init__(self, status: str) -> None:
+                super().__init__(status)
+
+            @resolve(resolve_result=Base.resolver_method)
+            @message_handler(FriendMessage, filters=Base.filter_method)
+            def handler_method(self, resolve_result: str) -> str:
+                outer_self.assertEqual(self.status, resolve_result)
+                return 'response'
+
+        obj = Derived('not ok')
+        context = RecvContext(Bot(0, ''), FriendMessage.from_json({
+            "type": "FriendMessage",
+            "sender": {
+                "id": 233,
+                "nickname": "",
+                "remark": ""
+            },
+            "messageChain": []
+        }))
+        self.assertFalse(await obj.handler_method.can_handle(context))
+        obj.status = 'ok'
+        self.assertTrue(await obj.handler_method.can_handle(context))
+        response = await obj.handler_method.handle(context)
+        self.assertEqual('response', str(response))
+        obj2 = Derived('obj2')
         self.assertNotEqual(obj.handler_method.filters, obj2.handler_method.filters)
         self.assertNotEqual(obj.handler_method.resolvers, obj2.handler_method.resolvers)
 
