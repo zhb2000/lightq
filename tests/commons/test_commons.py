@@ -68,6 +68,12 @@ class CommonsTest(unittest.TestCase):
         self.assertIn('base_method', class_attrs)
         self.assertIn('__str__', class_attrs)
         self.assertNotIn('instance_member', class_attrs)
+        subset = {
+            'common_member': 'derived',
+            'base_member': 1,
+            'derived_member': 2
+        }
+        self.assertEqual(class_attrs, subset | class_attrs)  # assert dict contains subset
 
     def test_id_token(self):
         token = commons.IdToken('token')
