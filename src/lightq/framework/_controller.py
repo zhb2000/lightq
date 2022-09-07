@@ -2,6 +2,7 @@ import abc
 from typing import Callable, Iterable, Any, TypeVar
 
 from ._handler import MessageHandler, EventHandler, ExceptionHandler
+from .._commons import get_class_attributes
 
 Handler = TypeVar('Handler', MessageHandler, EventHandler, ExceptionHandler)
 
@@ -39,34 +40,29 @@ class handler_property:
 
 
 class Controller(abc.ABC):
-    def __public_handler_property_names(self) -> Iterable[str]:
-        cls = type(self)
-        for attrname in dir(self):
-            if attrname.startswith('_'):
-                continue
-            if isinstance(getattr(cls, attrname, None), handler_property):
-                yield attrname
-
     @property
     def handlers(self) -> Iterable[MessageHandler | EventHandler | ExceptionHandler]:
-        for attrname in self.__public_handler_property_names():
-            if isinstance(getattr(self, attrname), MessageHandler | EventHandler | ExceptionHandler):
-                yield getattr(self, attrname)
+        for name, value in get_class_attributes(type(self)).items():
+            if not name.startswith('_') and isinstance(
+                value,
+                MessageHandler | EventHandler | ExceptionHandler | handler_property
+            ):
+                yield getattr(self, name)
 
     @property
     def message_handlers(self) -> Iterable[MessageHandler]:
-        for attrname in self.__public_handler_property_names():
-            if isinstance(getattr(self, attrname), MessageHandler):
-                yield getattr(self, attrname)
+        for handler in self.handlers:
+            if isinstance(handler, MessageHandler):
+                yield handler
 
     @property
     def event_handlers(self) -> Iterable[EventHandler]:
-        for attrname in self.__public_handler_property_names():
-            if isinstance(getattr(self, attrname), EventHandler):
-                yield getattr(self, attrname)
+        for handler in self.handlers:
+            if isinstance(handler, EventHandler):
+                yield handler
 
     @property
     def exception_handlers(self) -> Iterable[ExceptionHandler]:
-        for attrname in self.__public_handler_property_names():
-            if isinstance(getattr(self, attrname), ExceptionHandler):
-                yield getattr(self, attrname)
+        for handler in self.handlers:
+            if isinstance(handler, ExceptionHandler):
+                yield handler
