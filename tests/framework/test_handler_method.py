@@ -249,7 +249,7 @@ class HandlerMethodTest(unittest.IsolatedAsyncioTestCase):
         self.assertNotEqual(obj.handler_method.resolvers, obj2.handler_method.resolvers)
 
     async def test_other_class_method_failed(self):
-        def action():
+        with self.assertRaises(TypeError):
             class OtherController(Controller):
                 @message_handler(FriendMessage)
                 def other_class_method(self):
@@ -262,8 +262,6 @@ class HandlerMethodTest(unittest.IsolatedAsyncioTestCase):
 
             obj = MyController()
             obj.handler_method  # trigger __get__ on descriptor 'handler_method'
-
-        self.assertRaises(TypeError, action)
 
 
 if __name__ == '__main__':

@@ -144,7 +144,7 @@ class MessageChain(list[MessageElement], FromContext, Entity):
         return not self.__eq__(other)
 
     def __repr__(self) -> str:
-        return f'MessageChain{super().__repr__()}'
+        return f'MessageChain({super().__repr__()})'
 
     def __str__(self) -> str:
         return ''.join(str(e) for e in self if not isinstance(e, Source | UnsupportedMessageElement))
@@ -243,6 +243,9 @@ class Plain(AbstractMessageElement):
     def __str__(self) -> str:
         return self.text
 
+    def __repr__(self) -> str:
+        return f'Plain({self.text!r})'
+
 
 @dataclass
 class Image(AbstractMessageElement):
@@ -326,6 +329,9 @@ class Xml(AbstractMessageElement):
     def __str__(self) -> str:
         return '[XML]'
 
+    def __repr__(self) -> str:
+        return f'Xml({self.xml}!r)'
+
 
 @dataclass
 class Json(AbstractMessageElement):
@@ -335,6 +341,9 @@ class Json(AbstractMessageElement):
     def __str__(self) -> str:
         return '[JSON]'
 
+    def __repr__(self) -> str:
+        return f'Json({self.json}!r)'
+
 
 @dataclass
 class App(AbstractMessageElement):
@@ -343,6 +352,9 @@ class App(AbstractMessageElement):
 
     def __str__(self) -> str:
         return '[APP]'
+
+    def __repr__(self) -> str:
+        return f'App({self.content}!r)'
 
 
 @dataclass
@@ -366,6 +378,9 @@ class Poke(AbstractMessageElement):
     def __str__(self) -> str:
         return '[戳一戳]'
 
+    def __repr__(self) -> str:
+        return f'Poke({self.name}!r)'
+
 
 @dataclass
 class Dice(AbstractMessageElement):
@@ -376,6 +391,9 @@ class Dice(AbstractMessageElement):
 
     def __str__(self) -> str:
         return f'[骰子:{self.value}]'
+
+    def __repr__(self) -> str:
+        return f'Dice({self.value}!r)'
 
 
 @dataclass
@@ -452,6 +470,9 @@ class Forward(AbstractMessageElement):
     def __str__(self) -> str:
         return '[转发消息]'
 
+    def __repr__(self) -> str:
+        return f'Forward({self.node_list}!r)'
+
 
 @dataclass
 class File(AbstractMessageElement):
@@ -479,6 +500,9 @@ class MiraiCode(AbstractMessageElement):
 
     def __str__(self) -> str:
         return self.code
+
+    def __repr__(self) -> str:
+        return f'MiraiCode({self.code}!r)'
 
 
 def make_class_dict() -> dict[str, type[MessageElement]]:

@@ -1,4 +1,5 @@
 import copy
+import types
 from typing import Iterable, Callable, Awaitable, cast, Generic, TypeVar, Any
 
 from ._context import RecvContext, ExceptionContext
@@ -105,6 +106,15 @@ class HandlerMixin(Generic[Handler, Context, Data]):
             handler.filters = convert_filters(handler.filters)
             handler.resolvers = convert_resolvers(handler.resolvers)
         return cast(Handler, handler)
+
+    def __repr__(self) -> str:
+        sb = [f'<{type(self).__name__}']
+        if isinstance(self.handler, types.MethodType):
+            sb.append(f'{self.handler.__qualname__} (bound method)')
+        elif hasattr(self.handler, '__qualname__'):
+            sb.append(self.handler.__qualname__)
+        sb.append(f'at {hex(id(self))}>')
+        return ' '.join(sb)
 
 
 class MessageHandler(HandlerMixin['MessageHandler', RecvContext, Message]):

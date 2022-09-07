@@ -128,7 +128,7 @@ class MessageChainTest(unittest.TestCase):
 
     def test_repr(self):
         chain = MessageChain([Plain('a'), Plain('b')])
-        self.assertEqual("MessageChain[Plain(text='a'), Plain(text='b')]", repr(chain))
+        self.assertEqual("MessageChain([Plain('a'), Plain('b')])", repr(chain))
 
     def test_str(self):
         chain = MessageChain([entities.Source(0, 0), Plain('a'), Plain('b'), entities.AtAll()])

@@ -102,6 +102,30 @@ class CommonsTest(unittest.TestCase):
         obj.a = 'aa'  # normal setattr is ok
         self.assertEqual('aa', obj.a)
 
+    def test_remove_first_if_sequence(self):
+        self.assertIsNone(commons.remove_first_if([], lambda x: x == 0))
+        self.assertIsNone(commons.remove_first_if([1], lambda x: x == 0))
+        self.assertIsNone(commons.remove_first_if([1, 2], lambda x: x == 0))
+        lst = [1]
+        self.assertEqual(1, commons.remove_first_if(lst, lambda x: x == 1))
+        self.assertListEqual([], lst)
+        lst = [-1, -1, 1]
+        self.assertEqual(-1, commons.remove_first_if(lst, lambda x: abs(x) == 1))
+        self.assertListEqual([-1, 1], lst)
+        lst = [0, 2, -1, 2, 1, 3, 1]
+        self.assertEqual(-1, commons.remove_first_if(lst, lambda x: abs(x) == 1))
+        self.assertListEqual([0, 2, 2, 1, 3, 1], lst)
+
+    def test_remove_first_if_set(self):
+        self.assertIsNone(commons.remove_first_if(set(), lambda x: x == 0))
+        self.assertIsNone(commons.remove_first_if({1}, lambda x: x == 0))
+        self.assertIsNone(commons.remove_first_if({1, 2}, lambda x: x == 0))
+        s = {1}
+        self.assertEqual(1, commons.remove_first_if(s, lambda x: x == 1))
+        self.assertSetEqual(set(), s)
+        s = {1, 2, 3}
+        self.assertEqual(1, commons.remove_first_if(s, lambda x: x == 1))
+        self.assertSetEqual({2, 3}, s)
 
 
 if __name__ == '__main__':

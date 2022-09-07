@@ -3,7 +3,8 @@ import datetime
 import asyncio
 import typing
 import functools
-from collections import deque, ChainMap
+from collections import ChainMap
+from collections.abc import MutableSequence, MutableSet
 from typing import Callable, overload, Awaitable, TypeVar, ParamSpec, Any, Coroutine
 
 T = TypeVar('T')
@@ -11,28 +12,25 @@ P = ParamSpec('P')
 
 
 @overload
-def remove_if(container: list[T], predicate: Callable[[T], bool]) -> T | None: pass
+def remove_first_if(container: MutableSequence[T], predicate: Callable[[T], bool]) -> T | None: pass
 
 
 @overload
-def remove_if(container: deque[T], predicate: Callable[[T], bool]) -> T | None: pass
+def remove_first_if(container: MutableSet[T], predicate: Callable[[T], bool]) -> T | None: pass
 
 
-@overload
-def remove_if(container: set[T], predicate: Callable[[T], bool]) -> T | None: pass
-
-
-def remove_if(container: list[T] | deque[T] | set[T], predicate: Callable[[T], bool]) -> T | None:
-    if isinstance(container, set):
-        for element in container:
-            if predicate(element):
-                container.remove(element)
-                return element
-        return None
-    else:
+def remove_first_if(container: MutableSequence[T] | MutableSet[T], predicate: Callable[[T], bool]) -> T | None:
+    """Remove and return the first element that satisfies the predicate."""
+    if isinstance(container, MutableSequence):
         for i, element in enumerate(container):
             if predicate(element):
                 del container[i]
+                return element
+        return None
+    else:
+        for element in container:
+            if predicate(element):
+                container.remove(element)
                 return element
         return None
 

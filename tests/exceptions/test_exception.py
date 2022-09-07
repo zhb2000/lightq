@@ -33,7 +33,8 @@ class MiraiApiExceptionTest(unittest.TestCase):
             "code": 1,
             "msg": "I am a message."
         }''')
-        self.assertRaises(Exception, lambda: exceptions.BotNotExist.from_response(response))
+        with self.assertRaises(Exception):
+            exceptions.BotNotExist.from_response(response)
 
     def test_unsupported_api_exception_from(self):
         response = json.loads('''

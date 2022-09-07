@@ -1,5 +1,4 @@
 import typing
-import abc
 
 from ..entities import Message, Event, SyncMessage, UnsupportedEntity
 from .._from_context import FromExceptionContext, FromContext
@@ -9,18 +8,13 @@ if typing.TYPE_CHECKING:
     from ._handler import MessageHandler, EventHandler
 
 
-class Context(abc.ABC):
-    def __init__(self, bot: 'Bot'):
-        self.bot = bot
-
-
-class RecvContext(Context, FromContext):
+class RecvContext(FromContext):
     def __init__(
         self,
         bot: 'Bot',
         data: Message | Event | SyncMessage | UnsupportedEntity
     ):
-        super().__init__(bot)
+        self.bot = bot
         self.data = data
 
     @classmethod
@@ -28,14 +22,14 @@ class RecvContext(Context, FromContext):
         return context
 
 
-class ExceptionContext(Context, FromExceptionContext):
+class ExceptionContext(FromExceptionContext):
     def __init__(
         self,
         exception: Exception,
         context: RecvContext,
         handler: 'MessageHandler | EventHandler | None',
     ):
-        super().__init__(context.bot)
+        self.bot = context.bot
         self.exception = exception
         self.context = context
         self.handler = handler

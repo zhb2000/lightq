@@ -110,7 +110,8 @@ class TopologicalSortTest(unittest.TestCase):
         a.before = [default]
         b.after = [default]
         a.after = [b]
-        self.assertRaises(Exception, lambda: bot_topo_sort([default, a, b, c], [], default))
+        with self.assertRaises(Exception):
+            bot_topo_sort([default, a, b, c], [], default)
 
 
 if __name__ == '__main__':

@@ -275,14 +275,20 @@ class Bot(FromContext):
     def add_order(self, item1, item2, /, *rest):
         items = [item1, item2, *rest]
         match item1:
-            case MessageHandler(): orders = self.__message_handler_orders
-            case EventHandler(): orders = self.__event_handler_orders
-            case ExceptionHandler(): orders = self.__exception_handler_orders
-            case MessageRouter(): orders = self.__message_router_orders
-            case EventRouter(): orders = self.__event_router_orders
-            case ExceptionRouter(): orders = self.__exception_router_orders
-            case _: raise TypeError(f'Unsupported type: {type(item1)}')
-        orders.extend(itertools.pairwise(items))
+            case MessageHandler():
+                self.__message_handler_orders.extend(itertools.pairwise(items))
+            case EventHandler():
+                self.__event_handler_orders.extend(itertools.pairwise(items))
+            case ExceptionHandler():
+                self.__exception_handler_orders.extend(itertools.pairwise(items))
+            case MessageRouter():
+                self.__message_router_orders.extend(itertools.pairwise(items))
+            case EventRouter():
+                self.__event_router_orders.extend(itertools.pairwise(items))
+            case ExceptionRouter():
+                self.__exception_router_orders.extend(itertools.pairwise(items))
+            case _:
+                raise TypeError(f'Unsupported type: {type(item1)}')
 
     @classmethod
     def from_recv_context(cls, context: RecvContext) -> 'Bot':

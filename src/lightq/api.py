@@ -4,11 +4,12 @@ import urllib.parse
 from collections import deque
 from typing import Any, Callable, Literal, AsyncIterator, TypedDict, cast
 
-import websockets
+import websockets.client
+import websockets.exceptions
 
 from . import entities
 from .exceptions import MiraiApiException, TargetNotExist
-from ._commons import AutoIncrement, remove_if, to_camel_case
+from ._commons import AutoIncrement, remove_first_if, to_camel_case
 from .logging import logger
 from .entities import (
     Message,
@@ -40,7 +41,7 @@ class MiraiApi:
         self.verify_key = verify_key
         self.base_url = base_url
         self.reserved_sync_id = reserved_sync_id
-        self.__ws = None
+        self.__ws = cast(websockets.client.WebSocketClientProtocol, None)
         self.__unhandled: deque[dict[str, Any]] = deque(maxlen=10)
         self.__session_key: str | None = None
         self.__increment = AutoIncrement(start=233, max_value=int(1e8))
@@ -118,7 +119,7 @@ class MiraiApi:
     async def __expect_data(self, predicate: Callable[[dict[str, Any]], bool]) -> dict[str, Any]:
         await self.connect()
         while True:
-            data = remove_if(self.__unhandled, lambda x: predicate(x))  # from queue
+            data = remove_first_if(self.__unhandled, lambda x: predicate(x))  # from queue
             if data is not None:
                 return data
             if self.__waiting_for_recv:
@@ -141,7 +142,7 @@ class MiraiApi:
         if self.__ws is not None:
             return
         encoded_key = urllib.parse.quote_plus(self.verify_key)
-        self.__ws = await websockets.connect(
+        self.__ws = await websockets.client.connect(
             urllib.parse.urljoin(
                 self.base_url,
                 f'/all?verifyKey={encoded_key}&qq={self.bot_id}'
@@ -152,7 +153,7 @@ class MiraiApi:
         if self.__ws is None:
             return
         await self.__ws.close()
-        self.__ws = None
+        self.__ws = cast(websockets.client.WebSocketClientProtocol, None)
         self.__session_key = None
 
     async def __aenter__(self):
@@ -166,7 +167,7 @@ class MiraiApi:
             try:
                 while True:
                     yield await self.recv()
-            except websockets.ConnectionClosedOK:
+            except websockets.exceptions.ConnectionClosedOK:
                 return
 
         return aiter(generator())
