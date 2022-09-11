@@ -5,6 +5,7 @@
 - `message_handler`、`event_handler`、`exception_handler` 和 `resolve` 装饰器可以直接用于装饰 `Controller` 类的方法，无需像 0.1.0 中那样额外用 `handler_property` 定义属性方法
 - 支持在处理器方法上使用正则表达式装饰器
 - 新增群公告相关 API
+- 支持在 `message_handler` 和 `event_handler` 装饰器中使用基类类型，如 `@message_handler(Message) ...`
 
 ### 修复
 
