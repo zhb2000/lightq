@@ -47,6 +47,9 @@ class AutoIncrement:
             self.__current = 0
         return ret
 
+    def reset(self, start: int = 0):
+        self.__current = start
+
 
 def to_camel_case(snake_case: str) -> str:
     """

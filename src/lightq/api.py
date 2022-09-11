@@ -1,15 +1,16 @@
 import asyncio
 import json
 import urllib.parse
+import typing
 from collections import deque
-from typing import Any, Callable, Literal, AsyncIterator, TypedDict, cast
+from typing import Any, Literal, AsyncIterator, TypedDict, cast
 
 import websockets.client
 import websockets.exceptions
 
 from . import entities
 from .exceptions import MiraiApiException, TargetNotExist
-from ._commons import AutoIncrement, remove_first_if, to_camel_case
+from ._commons import AutoIncrement, to_camel_case
 from .logging import logger
 from .entities import (
     Message,
@@ -29,6 +30,78 @@ from .entities import (
 __all__ = ['MiraiApi']
 
 
+class DataQueue:
+    def __init__(self):
+        self.__queue: deque[dict[str, Any]] = deque()
+        self.__consumers: deque[asyncio.Future[dict[str, Any]]] = deque()
+
+    async def pop(self) -> dict[str, Any]:
+        if len(self.__queue) > 0:
+            return self.__queue.popleft()
+        future: asyncio.Future[dict[str, Any]] = asyncio.Future()
+        self.__consumers.append(future)
+
+        def remove_future(_):
+            # the future may not be in the queue because the `clear` method may have called
+            if future in self.__consumers:
+                self.__consumers.remove(future)
+
+        future.add_done_callback(remove_future)
+        return await future
+
+    def push(self, data: dict[str, Any]):
+        if len(self.__consumers) > 0:
+            self.__consumers[0].set_result(data)
+        else:
+            self.__queue.append(data)
+
+    def set_exceptions(self, exception: BaseException):
+        for future in self.__consumers:
+            if not future.done():
+                future.set_exception(exception)
+
+    def clear(self):
+        self.__queue.clear()
+        # If the future is already done or canceled, future.cancel() will do nothing.
+        for future in self.__consumers:
+            future.cancel()
+        self.__consumers.clear()
+
+
+class ResponseDict:
+    def __init__(self):
+        self.__responses: dict[str, dict[str, Any]] = {}  # sync-id => response-data
+        self.__consumers: dict[str, asyncio.Future[dict[str, Any]]] = {}  # sync-id => future
+
+    async def get(self, sync_id: str) -> dict[str, Any]:
+        if sync_id in self.__responses:
+            return self.__responses.pop(sync_id)
+        future: asyncio.Future[dict[str, Any]] = asyncio.Future()
+        if sync_id in self.__consumers:
+            raise KeyError(f'there is already a future waiting for response with sync_id: {sync_id}')
+        self.__consumers[sync_id] = future
+        # the future may not be in the dict because the `clear` method may have called
+        future.add_done_callback(lambda _: self.__consumers.pop(sync_id, None))
+        return await future
+
+    def put(self, sync_id: str, response: dict[str, Any]):
+        if sync_id in self.__consumers:
+            self.__consumers[sync_id].set_result(response)
+        else:
+            self.__responses[sync_id] = response
+
+    def set_exceptions(self, exception: BaseException):
+        for future in self.__consumers.values():
+            if not future.done():
+                future.set_exception(exception)
+
+    def clear(self):
+        self.__responses.clear()
+        for future in self.__consumers.values():
+            future.cancel()
+        self.__consumers.clear()
+
+
 class MiraiApi:
     def __init__(
         self,
@@ -41,11 +114,12 @@ class MiraiApi:
         self.verify_key = verify_key
         self.base_url = base_url
         self.reserved_sync_id = reserved_sync_id
-        self.__ws = cast(websockets.client.WebSocketClientProtocol, None)
-        self.__unhandled: deque[dict[str, Any]] = deque(maxlen=10)
+        self.__ws: websockets.client.WebSocketClientProtocol | None = None
         self.__session_key: str | None = None
-        self.__increment = AutoIncrement(start=233, max_value=int(1e8))
-        self.__waiting_for_recv = False
+        self.__queue = DataQueue()
+        self.__responses = ResponseDict()
+        self.__working_task: asyncio.Task[None] | None = None
+        self.__increment_id = AutoIncrement(max_value=int(1e8))
 
     @property
     def session_key(self) -> str | None: return self.__session_key
@@ -64,22 +138,120 @@ class MiraiApi:
         ``syncId`` 由 ``send`` 方法自动生成，无需放在 JSON 中。
 
         :returns: 若状态码为 0 则将响应的 JSON 返回
-        :raises MiraiApiException: 若状态码非 0 则抛出对应的异常
+        :raises:
+            MiraiApiException: 若状态码非 0 则抛出对应的异常
+            websockets.exception.WebSocketException: WebSocket 连接被关闭或出错时抛出
         """
         await self.connect()
-        sync_id = self.__increment.get()
+        if typing.TYPE_CHECKING:
+            assert self.__ws is not None
+        sync_id = self.__increment_id.get()
         data['syncId'] = sync_id
         logger.info(f'websocket send: {data}')
         await self.__ws.send(json.dumps(data))
         # 响应结果的 syncId 为字符串而非数字
-        response = await self.__expect_data(lambda x: x['syncId'] == str(sync_id))
-        response = response['data']
+        response = await self.__responses.get(str(sync_id))
+        response = cast(dict[str, Any], response['data'])
         if 'code' not in response:  # 有的响应不含 code 字段
             return response
         if response['code'] == 0:
             return response
         else:
             raise MiraiApiException.from_response(response)
+
+    async def recv(self) -> Message | Event | SyncMessage | UnsupportedEntity:
+        """
+        Mirai-api-http 推送格式：
+        ::
+            {
+                "syncId": "123", // 消息同步的字段
+                "data": {}       // 推送消息内容, 与通用接口定义相同
+            }
+
+        ``recv`` 方法返回其中的 ``data`` 部分。
+
+        :raises websockets.exception.WebSocketException: WebSocket 连接被关闭或出错时抛出
+        """
+        await self.connect()
+        data = await self.__queue.pop()
+        data = cast(dict[str, Any], data['data'])
+        if data['type'] in entities.MESSAGE_CLASSES:
+            return Message.from_json(data)
+        elif data['type'] in entities.EVENT_CLASSES:
+            return Event.from_json(data)
+        elif data['type'] in entities.SYNC_MESSAGE_CLASSES:
+            return SyncMessage.from_json(data)
+        else:
+            return UnsupportedEntity(data)
+
+    async def __working_method(self):
+        if typing.TYPE_CHECKING:
+            assert self.__ws is not None
+        try:
+            while True:
+                data = cast(dict[str, Any], json.loads(await self.__ws.recv()))
+                logger.info(f'websocket recv: {data}')
+                sync_id: str = data['syncId']
+                if sync_id == '':  # first message after connected
+                    self.__session_key = data['data']['session']
+                elif sync_id == self.reserved_sync_id:  # 他人发送的消息（并非响应结果）
+                    self.__queue.push(data)
+                else:  # 响应结果
+                    self.__responses.put(sync_id, data)
+        except websockets.exceptions.WebSocketException as exception:
+            self.__queue.set_exceptions(exception)
+            self.__responses.set_exceptions(exception)
+        finally:
+            self.__queue.clear()
+            self.__responses.clear()
+            self.__session_key = None
+            self.__increment_id.reset()
+            ws = self.__ws
+            self.__ws = None
+            await ws.close()  # the close method is idempotent
+
+    async def connect(self):
+        """The ``connect`` method is idempotent."""
+        if self.__ws is not None:
+            return
+        encoded_key = urllib.parse.quote_plus(self.verify_key)
+        self.__ws = await websockets.client.connect(
+            urllib.parse.urljoin(
+                self.base_url,
+                f'/all?verifyKey={encoded_key}&qq={self.bot_id}'
+            )
+        )
+
+        def remove_working_task(task):
+            self.__working_task = None
+
+        self.__working_task = asyncio.create_task(self.__working_method())
+        self.__working_task.add_done_callback(remove_working_task)
+
+    async def close(self):
+        """The ``close`` method is idempotent."""
+        if self.__ws is None:
+            return
+        await self.__ws.close()
+        if typing.TYPE_CHECKING:
+            assert self.__working_task is not None
+        await self.__working_task  # wait for the working task to finish
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()
+
+    def __aiter__(self) -> AsyncIterator[Message | Event | SyncMessage | UnsupportedEntity]:
+        async def generator():
+            while True:
+                try:
+                    yield await self.recv()
+                except websockets.exceptions.ConnectionClosedOK:
+                    break
+
+        return aiter(generator())
 
     async def send_command(
         self,
@@ -92,85 +264,6 @@ class MiraiApi:
             'content': content if content is not None else {},
             'subCommand': sub_command
         })
-
-    async def recv(self) -> Message | Event | SyncMessage | UnsupportedEntity:
-        """
-        Mirai-api-http 推送格式：
-        ::
-            {
-                "syncId": "123", // 消息同步的字段
-                "data": {}     // 推送消息内容, 与通用接口定义相同
-            }
-
-        ``recv`` 方法返回其中的 ``data`` 部分。
-        """
-        # 非响应结果（他人发送的消息），syncId 为 "-1"
-        data = await self.__expect_data(lambda x: x['syncId'] == self.reserved_sync_id)
-        data = data['data']
-        if data['type'] in entities.MESSAGE_CLASSES:
-            return Message.from_json(data)
-        elif data['type'] in entities.EVENT_CLASSES:
-            return Event.from_json(data)
-        elif data['type'] in entities.SYNC_MESSAGE_CLASSES:
-            return SyncMessage.from_json(data)
-        else:
-            return UnsupportedEntity(data)
-
-    async def __expect_data(self, predicate: Callable[[dict[str, Any]], bool]) -> dict[str, Any]:
-        await self.connect()
-        while True:
-            data = remove_first_if(self.__unhandled, lambda x: predicate(x))  # from queue
-            if data is not None:
-                return data
-            if self.__waiting_for_recv:
-                await asyncio.sleep(0)  # let other coroutine receive data
-                continue
-            self.__waiting_for_recv = True
-            data = cast(dict[str, Any], json.loads(await self.__ws.recv()))  # from websocket
-            self.__waiting_for_recv = False
-            logger.info(f'websocket recv: {data}')
-            if data['syncId'] == '':  # first message after connected
-                self.__session_key = data['data']['session']
-                continue
-            elif predicate(data):
-                return data
-            else:
-                self.__unhandled.append(data)
-            await asyncio.sleep(0)
-
-    async def connect(self):
-        if self.__ws is not None:
-            return
-        encoded_key = urllib.parse.quote_plus(self.verify_key)
-        self.__ws = await websockets.client.connect(
-            urllib.parse.urljoin(
-                self.base_url,
-                f'/all?verifyKey={encoded_key}&qq={self.bot_id}'
-            )
-        )
-
-    async def close(self):
-        if self.__ws is None:
-            return
-        await self.__ws.close()
-        self.__ws = cast(websockets.client.WebSocketClientProtocol, None)
-        self.__session_key = None
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.close()
-
-    def __aiter__(self) -> AsyncIterator[Message | Event | SyncMessage | UnsupportedEntity]:
-        async def generator():
-            try:
-                while True:
-                    yield await self.recv()
-            except websockets.exceptions.ConnectionClosedOK:
-                return
-
-        return aiter(generator())
 
     async def message_from_id(self, message_id: int) -> Message | None:
         """通过 message id 获取消息，当该 message id 没有被缓存或缓存失效时返回 None"""
