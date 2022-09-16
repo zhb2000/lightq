@@ -229,7 +229,7 @@ class GroupRecallEvent(AbstractEvent):
     """消息撤回所在的群"""
 
     operator: Member | None
-    """撤回消息的操作人，当 null 时为 bot 操作"""
+    """撤回消息的操作人，当 None 时为 bot 操作"""
 
 
 @dataclass
@@ -274,7 +274,7 @@ class NudgeEvent(AbstractEvent):
     """自定义动作内容"""
 
     target: int
-    """动作目标的QQ号"""
+    """动作目标的 QQ 号"""
 
 
 @dataclass
@@ -291,7 +291,7 @@ class GroupNameChangeEvent(AbstractEvent):
     """群名改名的群信息"""
 
     operator: Member | None
-    """操作的管理员或群主信息，当 null 时为 Bot 操作"""
+    """操作的管理员或群主信息，当 None 时为 Bot 操作"""
 
 
 @dataclass
@@ -308,7 +308,7 @@ class GroupEntranceAnnouncementChangeEvent(AbstractEvent):
     """公告改变的群信息"""
 
     operator: Member | None
-    """操作的管理员或群主信息，当 null 时为 Bot 操作"""
+    """操作的管理员或群主信息，当 None 时为 Bot 操作"""
 
 
 @dataclass
@@ -325,7 +325,7 @@ class GroupMuteAllEvent(AbstractEvent):
     """全员禁言的群信息"""
 
     operator: Member | None
-    """操作的管理员或群主信息，当 null 时为 Bot 操作"""
+    """操作的管理员或群主信息，当 None 时为 Bot 操作"""
 
 
 @dataclass
@@ -342,7 +342,7 @@ class GroupAllowAnonymousChatEvent(AbstractEvent):
     """匿名聊天状态改变的群信息"""
 
     operator: Member | None
-    """操作的管理员或群主信息，当 null 时为 Bot 操作"""
+    """操作的管理员或群主信息，当 None 时为 Bot 操作"""
 
 
 @dataclass
@@ -376,7 +376,7 @@ class GroupAllowMemberInviteEvent(AbstractEvent):
     """允许群员邀请好友加群状态改变的群信息"""
 
     operator: Member | None
-    """操作的管理员或群主信息，当 null 时为 Bot 操作"""
+    """操作的管理员或群主信息，当 None 时为 Bot 操作"""
 
 
 @dataclass
@@ -398,7 +398,7 @@ class MemberLeaveEventKick(AbstractEvent):
     """被踢者的信息"""
 
     operator: Member | None
-    """操作的管理员或群主信息，当 null 时为 Bot 操作"""
+    """操作的管理员或群主信息，当 None 时为 Bot 操作"""
 
 
 @dataclass
@@ -462,7 +462,7 @@ class MemberMuteEvent(AbstractEvent):
     """被禁言的群员的信息"""
 
     operator: Member | None
-    """操作者的信息，当 null 时为 Bot 操作"""
+    """操作者的信息，当 None 时为 Bot 操作"""
 
 
 @dataclass
@@ -473,7 +473,7 @@ class MemberUnmuteEvent(AbstractEvent):
     """被取消禁言的群员的信息"""
 
     operator: Member | None
-    """操作者的信息，当 null 时为 Bot 操作"""
+    """操作者的信息，当 None 时为 Bot 操作"""
 
 
 @dataclass
@@ -595,10 +595,10 @@ class CommandExecutedEvent(AbstractEvent):
     """命令名称"""
 
     friend: Friend | None
-    """发送命令的好友, 从控制台发送为 null"""
+    """发送命令的好友, 从控制台发送为 None"""
 
     member: Member | None
-    """发送命令的群成员, 从控制台发送为 null"""
+    """发送命令的群成员, 从控制台发送为 None"""
 
     args: MessageChain
     """指令的参数, 以消息类型传递"""
