@@ -265,12 +265,18 @@ class MiraiApi:
             'subCommand': sub_command
         })
 
-    async def message_from_id(self, message_id: int) -> Message | None:
-        """通过 message id 获取消息，当该 message id 没有被缓存或缓存失效时返回 None"""
+    async def message_from_id(self, message_id: int, friend_or_group_id: int) -> Message | None:
+        """
+        通过 message id 获取消息，当该 message id 没有被缓存或缓存失效时返回 None
+
+        :param message_id: 获取消息的 message id
+        :param friend_or_group_id: 好友 QQ 号或群 id
+        """
         try:
-            return Message.from_json((await self.send_command(
-                'messageFromId', {'id': message_id}
-            ))['data'])
+            return Message.from_json((await self.send_command('messageFromId', {
+                'messageId': message_id,
+                'target': friend_or_group_id
+            }))['data'])
         except TargetNotExist:
             return None
 
@@ -358,9 +364,17 @@ class MiraiApi:
             'kind': kind
         })
 
-    async def recall(self, message_id: int):
-        """撤回消息"""
-        await self.send_command('recall', {'target': message_id})
+    async def recall(self, message_id: int, friend_or_group_id: int):
+        """
+        撤回消息
+
+        :param message_id: 需要撤回的消息的 message id
+        :param friend_or_group_id: 好友 QQ 号或群号
+        """
+        await self.send_command('recall', {
+            'messageId': message_id,
+            'target': friend_or_group_id
+        })
 
     # endregion
 
@@ -410,9 +424,17 @@ class MiraiApi:
         """解除全体禁言"""
         await self.send_command('unmuteAll', {'target': group_id})
 
-    async def set_essence(self, message_id: int):
-        """设置群精华消息"""
-        await self.send_command('setEssence', {'target': message_id})
+    async def set_essence(self, message_id: int, group_id: int):
+        """
+        设置群精华消息
+
+        :param message_id: 精华消息的 message id
+        :param group_id: 群号
+        """
+        await self.send_command('setEssence', {
+            'messageId': message_id,
+            'target': group_id
+        })
 
     async def get_group_config(self, group_id: int) -> GroupConfig:
         """获取群设置"""
