@@ -280,6 +280,10 @@ class MiraiApi:
         except TargetNotExist:
             return None
 
+    async def bot_list(self) -> list[int]:
+        """获取已登录的 bot 账号"""
+        return (await self.send_command('botList'))['data']
+
     # region 获取账号信息
     async def friend_list(self) -> list[Friend]:
         """获取好友列表"""
