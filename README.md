@@ -1,6 +1,6 @@
 # LightQ
 
-![PyPI](https://img.shields.io/pypi/v/lightq?logo=pypi&logoColor=white) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/lightq?logo=python&logoColor=white) ![mirai-api-http version](https://img.shields.io/badge/mirai--api--http-v2.5.2-blue) ![PyPI - License](https://img.shields.io/pypi/l/lightq)
+![PyPI](https://img.shields.io/pypi/v/lightq?logo=pypi&logoColor=white) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/lightq?logo=python&logoColor=white) ![mirai-api-http version](https://img.shields.io/badge/mirai--api--http-v2.6.2-blue) ![PyPI - License](https://img.shields.io/pypi/l/lightq)
 
 LightQ 是一个基于 [mirai-api-http](https://github.com/project-mirai/mirai-api-http) 的 QQ 机器人框架。
 
@@ -25,9 +25,9 @@ pip install .
 环境要求：
 
 - Python 3.10
-- mirai-api-http 2.5.2
+- mirai-api-http 2.6.2
 
-LightQ 需要借助 Web API 调用 Mirai 的功能，因此请先安装并配置好  [Mirai Console Loader](https://github.com/iTXTech/mirai-console-loader) 和 [mirai-api-http](https://github.com/project-mirai/mirai-api-http) 插件：
+LightQ 需要借助网络 API 调用 Mirai 的功能，因此请先安装并配置好  [Mirai Console Loader](https://github.com/iTXTech/mirai-console-loader) 和 [mirai-api-http](https://github.com/project-mirai/mirai-api-http) 插件：
 
 1. 安装 [Mirai Console Loader (MCL)](https://github.com/iTXTech/mirai-console-loader)。
 1. 在 MCL 中配置 QQ 账号和密码，确保能正常登录账号，中途可能需要使用 [TxCaptchaHelper](https://github.com/mzdluo123/TxCaptchaHelper) 应对滑动验证码。
@@ -61,12 +61,16 @@ if __name__ == '__main__':
 
 `message_handler` 装饰器将 `say_hello` 函数包装为一个 `MessageHandler` 对象，该消息处理器只会响应好友消息 `FriendMessage`。LightQ 还提供了 `event_handler` 和 `exception_handler` 装饰器，分别用于创建事件处理器和异常处理器。
 
-`bot.add_all(scan_handlers(__name__))` 的作用是获取当前模块中所有 public 的 handler，并将它们添加到 `bot` 中。注 1：[`__name__` 是 Python 中一个特殊的变量，表示当前模块的全限定名称](https://docs.python.org/zh-cn/3/reference/import.html#name__)。注 2：在 Python 中不以下划线开头的变量为模块的 public 成员，另一种做法是在模块中用 `__all__` 列出所有 public 成员的名字。
+`bot.add_all(scan_handlers(__name__))` 的作用是获取当前模块中所有 public 的 handler，并将它们添加到 `bot` 中。
+
+- 注 1：[`__name__` 是 Python 中一个特殊的变量，表示当前模块的全限定名称](https://docs.python.org/zh-cn/3/reference/import.html#name__)。
+- 注 2：在 Python 中不以下划线开头的变量为模块的 public 成员，另一种做法是在模块中用 `__all__` 列出所有 public 成员的名字。
 
 一个合法的 handler 函数需要返回 `str` 或 `MessageChain` 或 `None`。Handler 函数既可以是同步函数也可以是异步函数。
 
 ```python
-from lightq.entities import MessageChain, Plain
+from lightq import message_handler
+from lightq.entities import FriendMessage, MessageChain, Plain
 
 @message_handler(FriendMessage)
 async def say_hello() -> MessageChain:  # 一个返回 MessageChain 的异步函数
@@ -93,7 +97,10 @@ def say_hello() -> str:
 上面代码中的 `condition` 函数就是一个过滤器。`lightq.filters` 模块提供了一些现成的过滤器，可以直接使用。让我们再修改一下 `say_hello`，为它设置两个条件：
 
 ```python
-from lightq import filters
+from lightq import RecvContext, filters
+
+def condition(context: RecvContext) -> bool:
+    return str(context.data.message_chain) == 'Hello'
 
 @message_handler(FriendMessage, filters=[filters.from_user(987654321), condition])
 def say_hello() -> str:
@@ -102,6 +109,7 @@ def say_hello() -> str:
 ```
 
 ### 参数解析
+#### 基于类型的参数解析
 
 如果你用过 Spring Boot 之类的 Web 框架，对于参数解析这个概念应该不会陌生。LightQ 框架支持基于类型和基于函数两种参数解析机制。下面这个示例展示了如何使用基于类型的参数解析：
 
@@ -115,7 +123,31 @@ def group_message_handler(chain: MessageChain):
 
 注意到 `group_message_handler` 函数带有参数类型注解 `chain: MessageChain`，这个类型注解是不可或缺的。LightQ 框架使用 Python 的内省 (inspect) 机制获取 `chain` 参数的类型，接收到消息后解析出消息链对象，再自动地将消息链对象注入 `chain` 参数中。
 
-LightQ 框架支持自动解析的类型有：`Bot`、`RecvContext`、`ExceptionContext`、`MessageChain`、`Message` 及其子类、`Event` 及其子类、`Exception` 及其子类。参数解析机制也支持自定义类型，只需让你自己的类型继承 `lightq.framework` 中的 `FromContext` / `FromRecvContext` / `FromExceptionContext` 抽象类并重写对应的方法即可。
+参数解析机制的一个重要用途是在 handler 内获取 bot 的引用，并直接调用 bot 对象上的方法：
+
+```python
+@event_handler(NudgeEvent)
+async def nudge_response(event: NudgeEvent, bot: Bot):
+    """谁拍一拍我，我就拍一拍谁"""
+    if (event.subject.kind == 'Group'
+        and event.target == bot.bot_id
+        and event.from_id != bot.bot_id):
+        await bot.api.send_nudge(event.from_id, event.subject.id, 'Group')
+```
+
+LightQ 框架支持自动解析的类型有：
+
+- `Bot`
+- `RecvContext`
+- `ExceptionContext`
+- `MessageChain`
+- `Message` 及其子类
+- `Event` 及其子类
+- `Exception` 及其子类
+
+参数解析机制也支持自定义类型，只需让你自己的类型继承 `lightq.framework` 中的 `FromContext` / `FromRecvContext` / `FromExceptionContext` 抽象类并重写对应的方法即可。
+
+#### 基于函数的参数解析
 
 基于类型的参数解析无法覆盖所有场景，例如：希望从群组消息中解析出群号和发送者的 QQ 号，但二者皆为 `int` 类型，仅凭类型无法区分。此时需要使用基于函数的参数解析，请看如下例子：
 
@@ -132,18 +164,6 @@ def group_message_handler(chain: MessageChain, group_id: int, member_id: int):
 `resolvers.group_id` 和 `resolvers.sender_id` 是两个类型为 `(RecvContext) -> int` 的函数，分别从 `RecvContext` 对象中解析出发送者的群号和 QQ 号，再配合 `resolve` 装饰器就可以实现参数解析和自动注入的效果。
 
 使用 `resolve` 装饰器时，若以普通方式传参（上面的 `@resolve(resolvers.group_id)`），则根据解析器的 `__name__` 属性注入同名的参数（[Python 函数的 `__name__` 属性默认为该函数的名字](https://docs.python.org/zh-cn/3/library/stdtypes.html#definition.__name__)）；若以命名参数的方式传参（上面的 `@resolve(member_id=resolvers.sender_id)`），则表示手动指定注入参数。
-
-参数解析机制的一个重要用途是在 handler 内获取 bot 的引用，并直接调用 bot 对象上的方法。详见下述示例：
-
-```python
-@event_handler(NudgeEvent)
-async def nudge_response(event: NudgeEvent, bot: Bot):
-    """谁拍一拍我，我就拍一拍谁"""
-    if (event.subject.kind == 'Group'
-        and event.target == bot.bot_id
-        and event.from_id != bot.bot_id):
-        await bot.api.send_nudge(event.from_id, event.subject.id, 'Group')
-```
 
 本节的示例代码放在 [examples/resolver_example.py](./examples/resolver_example.py) 中。
 

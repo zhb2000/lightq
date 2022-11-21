@@ -1,4 +1,23 @@
 # 更新日志
+## [0.3.0] - 2022-11-21
+### 新增
+
+`MiraiApi` 新增 `bot_list` 方法，用于获取已登录的 QQ 号。
+
+### 修复
+
+修复了 `MiraiApi` 不能多次 `close` 和 `connect` 的问题。
+
+### 变更
+
+依赖的 mirai-api-http 版本从 2.5.x 升级至 2.6.x。
+
+由于升级后 mirai-api-http 的接口发生了变更，因此 `MiraiApi` 类的一些方法的参数发生了变化：
+
+- `message_from_id`
+- `recall`
+- `set_essence`
+
 ## [0.2.0] - 2022-09-08
 ### 新增
 

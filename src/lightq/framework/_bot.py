@@ -120,6 +120,7 @@ class Bot(FromContext):
                 context = RecvContext(self, data)
                 background_func = self.__make_background_func(context)
                 self.create_task(background_func())
+                await asyncio.sleep(0)
         finally:
             await self.close()
 

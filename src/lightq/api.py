@@ -127,15 +127,17 @@ class MiraiApi:
     async def send(self, data: dict[str, Any]) -> dict[str, Any]:
         """
         Mirai-api-http 传入格式：
-        ::
-            {
-                "syncId": 123,                  // 消息同步的字段
-                "command": "sendFriendMessage", // 命令字
-                "subCommand": null,             // 子命令字, 可空
-                "content": {}                   // 命令的数据对象, 与通用接口定义相同
-            }
 
-        ``syncId`` 由 ``send`` 方法自动生成，无需放在 JSON 中。
+        ```json
+        {
+            "syncId": 123, // 消息同步的字段
+            "command": "sendFriendMessage", // 命令字
+            "subCommand": null, // 子命令字, 可空
+            "content": {} // 命令的数据对象, 与通用接口定义相同
+        }
+        ```
+
+        JSON 的 `syncId` 字段由 `send` 方法自动生成，无需传入。
 
         :returns: 若状态码为 0 则将响应的 JSON 返回
         :raises:
@@ -162,13 +164,15 @@ class MiraiApi:
     async def recv(self) -> Message | Event | SyncMessage | UnsupportedEntity:
         """
         Mirai-api-http 推送格式：
-        ::
-            {
-                "syncId": "123", // 消息同步的字段
-                "data": {}       // 推送消息内容, 与通用接口定义相同
-            }
 
-        ``recv`` 方法返回其中的 ``data`` 部分。
+        ```json
+        {
+            "syncId": "123", // 消息同步的字段
+            "data": {} // 推送消息内容, 与通用接口定义相同
+        }
+        ```
+
+        本方法会返回 JSON 的 `data` 部分。
 
         :raises websockets.exception.WebSocketException: WebSocket 连接被关闭或出错时抛出
         """
@@ -211,7 +215,7 @@ class MiraiApi:
             await ws.close()  # the close method is idempotent
 
     async def connect(self):
-        """The ``connect`` method is idempotent."""
+        """与 mirai-api-http 建立连接。如果连接已经建立，则什么也不做。"""
         if self.__ws is not None:
             return
         encoded_key = urllib.parse.quote_plus(self.verify_key)
@@ -229,7 +233,7 @@ class MiraiApi:
         self.__working_task.add_done_callback(remove_working_task)
 
     async def close(self):
-        """The ``close`` method is idempotent."""
+        """断开与 mirai-api-http 的连接。如果连接已经断开，则什么也不做。"""
         if self.__ws is None:
             return
         await self.__ws.close()
@@ -267,10 +271,10 @@ class MiraiApi:
 
     async def message_from_id(self, message_id: int, friend_or_group_id: int) -> Message | None:
         """
-        通过 message id 获取消息，当该 message id 没有被缓存或缓存失效时返回 None
+        通过 message id 获取消息。若该 message id 没有被缓存或缓存失效则返回 `None`。
 
         :param message_id: 获取消息的 message id
-        :param friend_or_group_id: 好友 QQ 号或群 id
+        :param friend_or_group_id: 好友 QQ 号或群号
         """
         try:
             return Message.from_json((await self.send_command('messageFromId', {
