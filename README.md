@@ -1,10 +1,10 @@
 # LightQ
 
-![PyPI](https://img.shields.io/pypi/v/lightq?logo=pypi&logoColor=white) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/lightq?logo=python&logoColor=white) ![mirai-api-http version](https://img.shields.io/badge/mirai--api--http-v2.6.2-blue) ![PyPI - License](https://img.shields.io/pypi/l/lightq)
+[![PyPI](https://img.shields.io/pypi/v/lightq?logo=pypi&logoColor=white)](https://pypi.org/project/lightq) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/lightq?logo=python&logoColor=white)](https://www.python.org/downloads/) [![mirai-api-http version](https://img.shields.io/badge/mirai--api--http-v2.6.2-blue)](https://github.com/project-mirai/mirai-api-http) [![PyPI - License](https://img.shields.io/pypi/l/lightq)](https://github.com/zhb2000/lightq/blob/master/LICENSE) [![GitHub Repo stars](https://img.shields.io/github/stars/zhb2000/lightq?style=social)](https://github.com/zhb2000/lightq/stargazers)
 
 LightQ 是一个基于 [mirai-api-http](https://github.com/project-mirai/mirai-api-http) 的 QQ 机器人框架。
 
-## 安装
+# 安装
 
 从 PyPI 安装：
 
@@ -20,7 +20,7 @@ cd lightq
 pip install .
 ```
 
-## 前置条件
+# 前置条件
 
 环境要求：
 
@@ -36,8 +36,8 @@ LightQ 需要借助网络 API 调用 Mirai 的功能，因此请先安装并配�
 
 LightQ 使用 Python 标准库的 [asyncio](https://docs.python.org/zh-cn/3/library/asyncio.html) 完成异步操作，如果你不熟悉 Python 的协程，可以先看看 Python 文档中[协程与任务](https://docs.python.org/zh-cn/3/library/asyncio-task.html)这一节。
 
-## 简明教程
-### 快速起步
+# 简明教程
+## 快速起步
 
 ```python
 import asyncio
@@ -78,7 +78,7 @@ async def say_hello() -> MessageChain:  # 一个返回 MessageChain 的异步函
     return MessageChain([Plain('Hello')])
 ```
 
-### 过滤器
+## 过滤器
 
 如何实现 handler 的有条件执行？需要使用过滤器。我们继续改进之前的 `say_hello`：
 
@@ -108,8 +108,8 @@ def say_hello() -> str:
     return 'Hello'
 ```
 
-### 参数解析
-#### 基于类型的参数解析
+## 参数解析
+### 基于类型的参数解析
 
 如果你用过 Spring Boot 之类的 Web 框架，对于参数解析这个概念应该不会陌生。LightQ 框架支持基于类型和基于函数两种参数解析机制。下面这个示例展示了如何使用基于类型的参数解析：
 
@@ -147,7 +147,7 @@ LightQ 框架支持自动解析的类型有：
 
 参数解析机制也支持自定义类型，只需让你自己的类型继承 `lightq.framework` 中的 `FromContext` / `FromRecvContext` / `FromExceptionContext` 抽象类并重写对应的方法即可。
 
-#### 基于函数的参数解析
+### 基于函数的参数解析
 
 基于类型的参数解析无法覆盖所有场景，例如：希望从群组消息中解析出群号和发送者的 QQ 号，但二者皆为 `int` 类型，仅凭类型无法区分。此时需要使用基于函数的参数解析，请看如下例子：
 
@@ -167,7 +167,7 @@ def group_message_handler(chain: MessageChain, group_id: int, member_id: int):
 
 本节的示例代码放在 [examples/resolver_example.py](./examples/resolver_example.py) 中。
 
-### 正则表达式
+## 正则表达式
 
 `lightq.decorators` 模块中有三个很实用的装饰器：`regex_match`、`regex_search`、`regex_fullmatch`，分别对应 Python 标准库中的 `re.match`, `re.search`, `re.fullmatch`，可以通过正则表达式匹配消息的内容。
 
@@ -203,7 +203,7 @@ async def mute_command(group_id: int, member_id: str, duration: str, bot: Bot):
 
 `regex_match` 的实现非常简单，其原理是将过滤器和解析器构造出来插入 handler 中，并不需要引入额外的组件。你可以在 [src/lightq/decorators/_regex.py](./src/lightq/decorators/_regex.py) 找到其源代码。
 
-### 设置 handler 的优先级
+## 设置 handler 的优先级
 
 若不显式地指定 handler 间的优先关系，则机器人遍历各个 handler 的顺序是不确定的，这有时候会带来问题。以下是一个复读机程序，可通过“开始复读”和“停止复读”命令来开关复读功能。
 
@@ -232,7 +232,7 @@ def repeat(chain: MessageChain) -> MessageChain:
 
 本节的示例代码放在 [examples/repeater.py](./examples/repeater.py) 中。
 
-### 使用 controller
+## 使用 controller
 
 以上示例中所有的 bot 都是“一问一答”型，而一个具备连续对话能力的 bot 看起来会更加有趣：
 
@@ -281,8 +281,8 @@ bot.add_all(controller.handlers())
 
 此外，你还可以用 `handler_property` 装饰器将属性方法转换为处理器，示例代码见 [examples/assistant_property_style.py](./examples/assistant_property_style.py).
 
-### 其他功能
-#### 定时任务、后台任务
+## 其他功能
+### 定时任务、后台任务
 
 相关的函数和方法：
 
@@ -291,15 +291,15 @@ bot.add_all(controller.handlers())
 - `Bot.create_task`：创建后台任务，该方法是对 `asyncio.create_task` 的简单封装。
 - `Bot.create_everyday_task`：创建每日定时任务。
 
-#### 日志
+### 日志
 
 LightQ 使用 Python 标准库中的 `logging` 模块来打印日志，可通过 `lightq.logger` 获得 logger 对象。默认的日志打印级别为 INFO。
 
-#### 自定义路由
+### 自定义路由
 
 LightQ 默认的路由会根据消息/事件/异常的类型将数据送给指定的 handler。你也可以根据实际场景设计更高效的路由机制。继承 `MessageRouter` / `EventRouter` / `ExceptionRouter` 抽象类（位于 `lightq.framework` 模块中）并重写对应的方法以实现自定义路由机制。
 
-## 未来
+# 未来
 
 （可能是）将来的一些工作：
 
